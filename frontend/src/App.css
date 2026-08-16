@@ -259,128 +259,6 @@
   font-size: 12px;
 }
 
-.eeg-chart-container {
-  width: 100%;
-  height: 360px;
-  margin-top: 24px;
-}
-
-.eeg-chart-placeholder {
-  width: 100%;
-  height: 100%;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border: 1px dashed #d1d5db;
-  border-radius: 8px;
-
-  background: #f9fafb;
-  color: #9ca3af;
-}
-
-.eeg-lanes {
-  margin-top: 24px;
-  max-height: 650px;
-  overflow-y: auto;
-
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-
-  background: #ffffff;
-}
-
-.eeg-time-axis {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-
-  display: grid;
-  grid-template-columns: 60px 1fr;
-
-  height: 32px;
-
-  background: #ffffff;
-  border-bottom: 1px solid #d1d5db;
-}
-
-.eeg-time-axis-label {
-  border-right: 1px solid #e5e7eb;
-}
-
-.eeg-time-axis-scale {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  padding: 0 10px;
-
-  font-size: 11px;
-  color: #6b7280;
-}
-
-.eeg-header-right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 10px;
-}
-
-/* ページ移動 */
-
-.time-window-control {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-
-  font-size: 13px;
-}
-
-.time-window-control button {
-  width: 30px;
-  height: 30px;
-
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-
-  background: #ffffff;
-
-  cursor: pointer;
-}
-
-.time-window-control button:hover:not(:disabled) {
-  background: #f3f4f6;
-}
-
-.time-window-control button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.time-window-control strong {
-  min-width: 65px;
-  text-align: center;
-}
-
-/* 全時間スライダー */
-
-.time-slider {
-  width: 280px;
-
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  font-size: 11px;
-  color: #6b7280;
-}
-
-.time-slider input {
-  flex: 1;
-  cursor: pointer;
-}
-
 /* EEG表示領域 */
 
 .eeg-lanes {
@@ -388,6 +266,7 @@
 
   max-height: 650px;
   overflow-y: auto;
+  overflow-x: hidden;
 
   border: 1px solid #e5e7eb;
   border-radius: 8px;
@@ -459,10 +338,36 @@
   color: #374151;
 }
 
-/* Recharts */
+/* EEG波形 */
 
 .eeg-lane-chart {
   width: 100%;
   height: 80px;
   min-width: 0;
+}
+
+/* 下部時間スクロール */
+
+.eeg-time-scrollbar {
+  display: grid;
+  grid-template-columns: 60px 1fr;
+
+  margin-top: 6px;
+}
+
+.eeg-time-scrollbar-label {
+  width: 60px;
+}
+
+.eeg-horizontal-scroll {
+  width: 100%;
+
+  overflow-x: scroll;
+  overflow-y: hidden;
+
+  height: 18px;
+}
+
+.eeg-horizontal-scroll-content {
+  height: 1px;
 }

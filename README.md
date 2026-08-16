@@ -1,2 +1,35 @@
-# eeg-analysis-platform
-脳波（EEG）データの可視化・解析を行うWebアプリケーション。CSV入力による波形表示、信号処理、各種解析機能に対応
+# EEG Analysis Prototype
+
+## 実行手順
+
+### 1. リポジトリをクローン
+
+```bash
+git clone <repository-url>
+cd <repository-name>
+```
+
+### 2. Dockerコンテナを起動
+
+```bash
+docker compose up --build
+```
+
+### 3. ブラウザでアクセス
+
+```text
+http://localhost:5173
+```
+
+## 終了
+
+```bash
+docker compose down
+```
+
+## 再起動
+
+```bash
+docker compose up
+```
+

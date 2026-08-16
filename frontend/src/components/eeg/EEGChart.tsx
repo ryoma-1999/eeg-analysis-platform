@@ -1,4 +1,8 @@
-import { useEffect, useState } from 'react'
+import {
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 
 import {
   CartesianGrid,
@@ -16,26 +20,77 @@ type EEGChartProps = {
   eegData: EEGData | null
 }
 
+/*
+ * 一度に画面へ表示する秒数
+ */
 const WINDOW_SECONDS = 10
+
+/*
+ * 1チャンネルあたり、
+ * 表示用に何区間くらいまで残すか。
+ *
+ * 元データ自体は削除しない。
+ * Rechartsへ渡すデータだけ軽くする。
+ */
+const DISPLAY_BUCKETS = 300
 
 function EEGChart({ eegData }: EEGChartProps) {
   /*
-   * 現在表示している開始秒
+   * 現在画面に表示している開始秒
    *
-   * 0  →  0〜10秒
-   * 10 → 10〜20秒
-   * 20 → 20〜30秒
+   * 例：
+   * 0      → 0〜10秒
+   * 15.5   → 15.5〜25.5秒
+   * 78.2   → 78.2〜88.2秒
    */
-  const [startSecond, setStartSecond] = useState(0)
+  const [startSecond, setStartSecond] =
+    useState(0)
 
   /*
-   * 新しいCSVを読み込んだら
-   * 最初の0秒へ戻す
+   * 下部スクロールバー本体
+   */
+  const horizontalScrollRef =
+    useRef<HTMLDivElement | null>(null)
+
+  /*
+   * スクロールイベントが大量に発生しても、
+   * 1フレームに1回だけReactを更新するために使う。
+   */
+  const animationFrameRef =
+    useRef<number | null>(null)
+
+  const pendingStartSecondRef =
+    useRef(0)
+
+  /*
+   * 新しいCSVを読み込んだら、
+   * 横スクロール位置を最初へ戻す。
    */
   useEffect(() => {
     setStartSecond(0)
-  }, [eegData?.fileName])
 
+    if (horizontalScrollRef.current) {
+      horizontalScrollRef.current.scrollLeft = 0
+    }
+  }, [eegData])
+
+  /*
+   * コンポーネントを破棄するとき、
+   * 残っているrequestAnimationFrameを解除。
+   */
+  useEffect(() => {
+    return () => {
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(
+          animationFrameRef.current
+        )
+      }
+    }
+  }, [])
+
+  /*
+   * EEGデータ未読込
+   */
   if (!eegData) {
     return (
       <section className="eeg-card">
@@ -63,65 +118,54 @@ function EEGChart({ eegData }: EEGChartProps) {
   }
 
   /*
-   * ==============================
+   * =====================================
    * EEG基本情報
-   * ==============================
+   * =====================================
    */
 
   const sampleCount =
     eegData.data[0]?.length ?? 0
 
+  /*
+   * バックエンドが計算したdurationを使用。
+   */
   const totalDuration =
-    sampleCount / eegData.samplingRate
+    eegData.duration
 
   /*
-   * 全ページ数
-   *
-   * 120秒なら
-   *
-   * 120 / 10 = 12ページ
+   * 10秒より短いデータの場合は、
+   * データ全体を表示。
    */
-  const pageCount = Math.max(
-    1,
-    Math.ceil(
-      totalDuration / WINDOW_SECONDS
-    )
+  const visibleDuration = Math.min(
+    WINDOW_SECONDS,
+    totalDuration
   )
 
   /*
-   * 最後に表示できる開始秒
+   * 横スクロールできる最大の開始秒
    *
    * 120秒なら
+   * 120 - 10 = 110秒
    *
-   * 110秒
-   *
-   * → 110〜120秒
+   * つまり最後は
+   * 110〜120秒。
    */
   const maxStartSecond = Math.max(
     0,
-    (pageCount - 1) * WINDOW_SECONDS
+    totalDuration - visibleDuration
   )
 
   /*
-   * 現在のページ番号
-   *
-   * startSecond = 0
-   * → page 0
-   *
-   * startSecond = 10
-   * → page 1
+   * 万が一データ変更などで範囲外になっても
+   * startSecondを正常範囲へ収める。
    */
-  const currentPage = Math.floor(
-    startSecond / WINDOW_SECONDS
+  const windowStart = Math.min(
+    startSecond,
+    maxStartSecond
   )
-
-  /*
-   * 現在表示する時間
-   */
-  const windowStart = startSecond
 
   const windowEnd = Math.min(
-    startSecond + WINDOW_SECONDS,
+    windowStart + visibleDuration,
     totalDuration
   )
 
@@ -140,14 +184,17 @@ function EEGChart({ eegData }: EEGChartProps) {
   )
 
   /*
-   * ==============================
+   * =====================================
    * 表示用EEGデータ
-   * ==============================
+   * =====================================
    */
 
   const channelData =
     eegData.channels.map(
       (channel, channelIndex) => {
+        /*
+         * 今見えている時間範囲だけ取得
+         */
         const values =
           eegData.data[channelIndex].slice(
             startSample,
@@ -155,7 +202,7 @@ function EEGChart({ eegData }: EEGChartProps) {
           )
 
         /*
-         * 平均値を計算
+         * 平均値計算
          */
         let sum = 0
 
@@ -169,20 +216,106 @@ function EEGChart({ eegData }: EEGChartProps) {
             : 0
 
         /*
-         * Recharts用データ
+         * =================================
+         * 表示用ダウンサンプリング
+         * =================================
+         *
+         * 2500点すべてをRechartsへ渡すと、
+         * 32chではかなり重い。
+         *
+         * そこで数点ずつのグループに分け、
+         * 各グループの最小値・最大値だけ残す。
+         *
+         * これなら瞬目などの大きなピークも
+         * 消えにくい。
          */
-        const points = values.map(
-          (value, index) => ({
-            time:
-              (startSample + index) /
-              eegData.samplingRate,
 
-            /*
-             * 表示用に平均値を引く
-             */
-            value: value - mean,
-          })
+        const bucketSize = Math.max(
+          1,
+          Math.ceil(
+            values.length /
+              DISPLAY_BUCKETS
+          )
         )
+
+        const points: {
+          time: number
+          value: number
+        }[] = []
+
+        for (
+          let bucketStart = 0;
+          bucketStart < values.length;
+          bucketStart += bucketSize
+        ) {
+          const bucketEnd = Math.min(
+            bucketStart + bucketSize,
+            values.length
+          )
+
+          let minValue = Infinity
+          let maxValue = -Infinity
+
+          let minIndex = bucketStart
+          let maxIndex = bucketStart
+
+          for (
+            let index = bucketStart;
+            index < bucketEnd;
+            index++
+          ) {
+            const centeredValue =
+              values[index] - mean
+
+            if (centeredValue < minValue) {
+              minValue = centeredValue
+              minIndex = index
+            }
+
+            if (centeredValue > maxValue) {
+              maxValue = centeredValue
+              maxIndex = index
+            }
+          }
+
+          /*
+           * 時系列順になるように
+           * min/maxの順番を調整。
+           */
+          if (minIndex < maxIndex) {
+            points.push({
+              time:
+                (startSample + minIndex) /
+                eegData.samplingRate,
+              value: minValue,
+            })
+
+            if (maxIndex !== minIndex) {
+              points.push({
+                time:
+                  (startSample + maxIndex) /
+                  eegData.samplingRate,
+                value: maxValue,
+              })
+            }
+          } else {
+            points.push({
+              time:
+                (startSample + maxIndex) /
+                eegData.samplingRate,
+              value: maxValue,
+            })
+
+            if (maxIndex !== minIndex) {
+              points.push({
+                time:
+                  (startSample + minIndex) /
+                  eegData.samplingRate,
+                value: minValue,
+              })
+            }
+          }
+        }
 
         return {
           channel,
@@ -192,12 +325,11 @@ function EEGChart({ eegData }: EEGChartProps) {
     )
 
   /*
-   * ==============================
-   * Y軸
-   * ==============================
-   *
-   * 全チャンネルで同じ振幅スケール
+   * =====================================
+   * 全チャンネル共通Y軸
+   * =====================================
    */
+
   let maxAmplitude = 0
 
   for (const channel of channelData) {
@@ -215,154 +347,176 @@ function EEGChart({ eegData }: EEGChartProps) {
   )
 
   /*
-   * ==============================
-   * 前の10秒
-   * ==============================
+   * =====================================
+   * 横スクロール処理
+   * =====================================
    */
 
-  const movePrevious = () => {
-    setStartSecond((current) => {
-      const next =
-        current - WINDOW_SECONDS
+  const handleHorizontalScroll = (
+    event: React.UIEvent<HTMLDivElement>
+  ) => {
+    const element = event.currentTarget
 
-      return Math.max(
-        0,
-        next
-      )
-    })
+    /*
+     * 横スクロール可能な総距離
+     */
+    const maxScrollLeft =
+      element.scrollWidth -
+      element.clientWidth
+
+    if (maxScrollLeft <= 0) {
+      return
+    }
+
+    /*
+     * スクロール位置を
+     * 0〜1へ変換。
+     *
+     * 左端 = 0
+     * 右端 = 1
+     */
+    const scrollRatio =
+      element.scrollLeft /
+      maxScrollLeft
+
+    /*
+     * 0〜1を、
+     * 0〜maxStartSecondへ変換。
+     */
+    const nextStartSecond =
+      scrollRatio *
+      maxStartSecond
+
+    pendingStartSecondRef.current =
+      nextStartSecond
+
+    /*
+     * scrollイベントは非常に大量に発生するため、
+     * Reactの更新を1フレーム1回に制限。
+     */
+    if (
+      animationFrameRef.current !== null
+    ) {
+      return
+    }
+
+    animationFrameRef.current =
+      requestAnimationFrame(() => {
+        setStartSecond(
+          pendingStartSecondRef.current
+        )
+
+        animationFrameRef.current = null
+      })
   }
 
   /*
-   * ==============================
-   * 次の10秒
-   * ==============================
+   * =====================================
+   * 横スクロールバー内部の仮想的な幅
+   * =====================================
+   *
+   * 120秒データを10秒表示なら
+   *
+   * 120 / 10 = 12
+   *
+   * → 表示領域の1200%幅
+   *
+   * 実際の波形を1200%に引き伸ばすのではなく、
+   * スクロール位置を取得するための透明な領域。
    */
-
-  const moveNext = () => {
-    setStartSecond((current) => {
-      const next =
-        current + WINDOW_SECONDS
-
-      return Math.min(
-        maxStartSecond,
-        next
-      )
-    })
-  }
+  const timelineWidthPercent =
+    visibleDuration > 0
+      ? Math.max(
+          100,
+          (
+            totalDuration /
+            visibleDuration
+          ) * 100
+        )
+      : 100
 
   /*
-   * ==============================
+   * =====================================
    * 画面
-   * ==============================
+   * =====================================
    */
 
   return (
     <section className="eeg-card">
+      {/* ヘッダー */}
       <div className="eeg-card-header">
         <div>
-          <h3>EEG Waveform</h3>
+          <h3>
+            EEG Waveform
+          </h3>
 
           <p>
             Loaded: {eegData.fileName}
           </p>
         </div>
 
-        <div className="eeg-header-right">
-          {/* EEG情報 */}
-          <div className="eeg-meta">
-            <span>
-              Channels:{' '}
-              {eegData.channels.length}
-            </span>
+        <div className="eeg-meta">
+          <span>
+            Channels:{' '}
+            {eegData.channels.length}
+          </span>
 
-            <span>
-              Sampling Rate:{' '}
-              {eegData.samplingRate.toFixed(1)} Hz
-            </span>
+          <span>
+            Sampling Rate:{' '}
+            {eegData.samplingRate.toFixed(
+              1
+            )}{' '}
+            Hz
+          </span>
 
-            <span>
-              Duration:{' '}
-              {totalDuration.toFixed(1)} s
-            </span>
-          </div>
-
-          {/* ページ送り */}
-          <div className="time-window-control">
-            <button
-              type="button"
-              onClick={movePrevious}
-              disabled={startSecond <= 0}
-            >
-              ←
-            </button>
-
-            <strong>
-              {currentPage + 1} / {pageCount}
-            </strong>
-
-            <button
-              type="button"
-              onClick={moveNext}
-              disabled={
-                startSecond >= maxStartSecond
-              }
-            >
-              →
-            </button>
-          </div>
-
-          {/* 全時間スライダー */}
-          <div className="time-slider">
-            <span>0s</span>
-
-            <input
-              type="range"
-              min={0}
-              max={maxStartSecond}
-              step={WINDOW_SECONDS}
-              value={startSecond}
-              onChange={(event) => {
-                setStartSecond(
-                  Number(event.target.value)
-                )
-              }}
-            />
-
-            <span>
-              {totalDuration.toFixed(0)}s
-            </span>
-          </div>
+          <span>
+            Duration:{' '}
+            {totalDuration.toFixed(
+              1
+            )}{' '}
+            s
+          </span>
         </div>
       </div>
 
-      {/* EEG波形領域 */}
+      {/* EEG波形エリア */}
       <div className="eeg-lanes">
-        {/* 固定時間軸 */}
+        {/* 上部固定時間軸 */}
         <div className="eeg-time-axis">
           <div className="eeg-time-axis-label" />
 
           <div className="eeg-time-axis-scale">
             {Array.from({
               length: 6,
-            }).map((_, index) => {
-              const time =
-                windowStart +
-                ((windowEnd - windowStart) *
-                  index) /
-                  5
+            }).map(
+              (_, index) => {
+                const time =
+                  windowStart +
+                  (
+                    (
+                      windowEnd -
+                      windowStart
+                    ) *
+                    index
+                  ) /
+                    5
 
-              return (
-                <span key={index}>
-                  {time.toFixed(1)}s
-                </span>
-              )
-            })}
+                return (
+                  <span key={index}>
+                    {time.toFixed(1)}s
+                  </span>
+                )
+              }
+            )}
           </div>
         </div>
 
         {/* EEGチャンネル */}
         {channelData.map(
-          ({ channel, points }) => (
+          ({
+            channel,
+            points,
+          }) => (
             <div
               className="eeg-lane"
               key={channel}
@@ -383,7 +537,6 @@ function EEGChart({ eegData }: EEGChartProps) {
                 >
                   <LineChart
                     data={points}
-                    syncId="eeg"
                     margin={{
                       top: 4,
                       right: 10,
@@ -417,13 +570,21 @@ function EEGChart({ eegData }: EEGChartProps) {
                     />
 
                     <Tooltip
-                      labelFormatter={(value) =>
-                        `${Number(value).toFixed(
+                      labelFormatter={(
+                        value
+                      ) =>
+                        `${Number(
+                          value
+                        ).toFixed(
                           3
                         )} s`
                       }
-                      formatter={(value) => [
-                        `${Number(value).toFixed(
+                      formatter={(
+                        value
+                      ) => [
+                        `${Number(
+                          value
+                        ).toFixed(
                           2
                         )} µV`,
                         channel,
@@ -434,7 +595,9 @@ function EEGChart({ eegData }: EEGChartProps) {
                       type="linear"
                       dataKey="value"
                       dot={false}
-                      isAnimationActive={false}
+                      isAnimationActive={
+                        false
+                      }
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -442,6 +605,27 @@ function EEGChart({ eegData }: EEGChartProps) {
             </div>
           )
         )}
+      </div>
+
+      {/* 下部横スクロールバー */}
+      <div className="eeg-time-scrollbar">
+        {/* チャンネル名部分と幅を合わせる */}
+        <div className="eeg-time-scrollbar-label" />
+
+        <div
+          ref={horizontalScrollRef}
+          className="eeg-horizontal-scroll"
+          onScroll={
+            handleHorizontalScroll
+          }
+        >
+          <div
+            className="eeg-horizontal-scroll-content"
+            style={{
+              width: `${timelineWidthPercent}%`,
+            }}
+          />
+        </div>
       </div>
     </section>
   )
