@@ -37,7 +37,8 @@ function FileUpload({ onUploadSuccess }: FileUploadProps) {
       </div>
 
       <label className="upload-area">
-        <input
+      <input
+          id="eeg-file-input"
           className="upload-input"
           type="file"
           accept=".csv"

@@ -132,13 +132,23 @@ function Dashboard() {
 
 
   return (
-    <div className="dashboard">
-      <Header />
+  <div className="dashboard">
 
-      <div className="dashboard-body">
-        <Sidebar />
+    <Sidebar />
 
-        <main className="dashboard-main">
+    <div className="dashboard-content">
+
+      <Header
+        onUploadClick={() => {
+          document
+            .getElementById(
+              'eeg-file-input'
+            )
+            ?.click()
+        }}
+      />
+
+      <main className="dashboard-main">
           <h2>
             脳波記録
           </h2>
