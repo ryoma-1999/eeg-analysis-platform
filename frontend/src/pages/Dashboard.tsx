@@ -12,6 +12,8 @@ import type {
   EEGFilteredData,
 } from '../types/eeg'
 
+import PSDPanel from '../components/eeg/PSDPanel'
+
 
 function Dashboard() {
   /*
@@ -195,6 +197,13 @@ function Dashboard() {
           <EEGChart
             eegData={
               displayData
+            }
+          />
+
+          {/* PSD */}
+          <PSDPanel
+            eegData={
+            displayData
             }
           />
 

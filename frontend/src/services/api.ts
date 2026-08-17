@@ -2,6 +2,7 @@ import type {
   EEGData,
   EEGFilteredData,
   EEGFilterSettings,
+  EEGPSDData,
 } from '../types/eeg'
 
 
@@ -49,15 +50,9 @@ export async function filterEEGData(
   settings: EEGFilterSettings
 ): Promise<EEGFilteredData> {
 
-  /*
-   * Backendへ送るデータ
-   *
-   * 元EEGデータ
-   * +
-   * Filter設定
-   */
   const requestBody = {
-    fileName: eegData.fileName,
+    fileName:
+      eegData.fileName,
 
     samplingRate:
       eegData.samplingRate,
@@ -97,16 +92,6 @@ export async function filterEEGData(
     }
   )
 
-  /*
-   * Backendでエラーになった場合
-   *
-   * 例：
-   * Low-pass 150Hz
-   * ↓
-   * Nyquist 125Hzを超える
-   * ↓
-   * HTTP 400
-   */
   if (!response.ok) {
     const errorData =
       await response.json()
@@ -117,14 +102,79 @@ export async function filterEEGData(
     )
   }
 
-  /*
-   * Filter後EEG
-   */
   const filteredData:
     EEGFilteredData =
       await response.json()
 
   return filteredData
+}
+
+
+// -------------------------
+// EEG PSD
+// -------------------------
+
+export async function calculatePSD(
+  eegData: EEGData
+): Promise<EEGPSDData> {
+
+  /*
+   * BackendのEEGPSDRequestに
+   * 合わせたデータを作る
+   */
+  const requestBody = {
+    fileName:
+      eegData.fileName,
+
+    samplingRate:
+      eegData.samplingRate,
+
+    channels:
+      eegData.channels,
+
+    data:
+      eegData.data,
+  }
+
+  const response = await fetch(
+    `${API_BASE_URL}/api/eeg/psd`,
+    {
+      method: 'POST',
+
+      headers: {
+        'Content-Type':
+          'application/json',
+      },
+
+      body: JSON.stringify(
+        requestBody
+      ),
+    }
+  )
+
+  /*
+   * BackendでPSD計算に
+   * 失敗した場合
+   */
+  if (!response.ok) {
+    const errorData =
+      await response.json()
+
+    throw new Error(
+      errorData.detail ??
+        'Failed to calculate PSD'
+    )
+  }
+
+  /*
+   * Welch法で計算された
+   * PSDデータを受け取る
+   */
+  const psdData:
+    EEGPSDData =
+      await response.json()
+
+  return psdData
 }
 
 

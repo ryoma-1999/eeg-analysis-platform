@@ -19,3 +19,16 @@ export type EEGFilteredData = EEGData & {
   lowpassHz: number | null
   notchHz: number | null
 }
+
+// -------------------------
+// PSD
+// -------------------------
+
+export type EEGPSDData = {
+  fileName: string
+  samplingRate: number
+  channels: string[]
+
+  frequencies: number[]
+  psd: number[][]
+}

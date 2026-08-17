@@ -10,11 +10,17 @@ import pandas as pd
 from app.schemas.eeg import (
     EEGFilterRequest,
     EEGFilterResponse,
+    EEGPSDRequest,
+    EEGPSDResponse,
     EEGUploadResponse,
 )
 
 from app.services.eeg_filter import (
     apply_eeg_filter,
+)
+
+from app.services.eeg_spectral import (
+    calculate_psd,
 )
 
 
@@ -213,4 +219,40 @@ def filter_eeg(
         highpassHz=request.highpassHz,
         lowpassHz=request.lowpassHz,
         notchHz=request.notchHz,
+    )
+
+# -------------------------
+# EEG PSD API
+# -------------------------
+
+@router.post(
+    "/psd",
+    response_model=EEGPSDResponse,
+)
+def calculate_eeg_psd(
+    request: EEGPSDRequest,
+):
+    """
+    EEGデータからWelch法を使って
+    PSDを計算する。
+    """
+
+    try:
+        frequencies, psd = calculate_psd(
+            data=request.data,
+            sampling_rate=request.samplingRate,
+        )
+
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail=str(exc),
+        ) from exc
+
+    return EEGPSDResponse(
+        fileName=request.fileName,
+        samplingRate=request.samplingRate,
+        channels=request.channels,
+        frequencies=frequencies,
+        psd=psd,
     )

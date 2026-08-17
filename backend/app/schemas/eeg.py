@@ -31,3 +31,22 @@ class EEGFilterResponse(BaseModel):
     highpassHz: float | None
     lowpassHz: float | None
     notchHz: float | None
+
+# -------------------------
+# PSD
+# -------------------------
+
+class EEGPSDRequest(BaseModel):
+    fileName: str
+    samplingRate: float
+    channels: list[str]
+    data: list[list[float]]
+
+
+class EEGPSDResponse(BaseModel):
+    fileName: str
+    samplingRate: float
+    channels: list[str]
+
+    frequencies: list[float]
+    psd: list[list[float]]
