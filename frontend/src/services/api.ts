@@ -1,4 +1,5 @@
 import type {
+  EEGBandPowerData,
   EEGData,
   EEGFilteredData,
   EEGFilterSettings,
@@ -118,10 +119,6 @@ export async function calculatePSD(
   eegData: EEGData
 ): Promise<EEGPSDData> {
 
-  /*
-   * BackendのEEGPSDRequestに
-   * 合わせたデータを作る
-   */
   const requestBody = {
     fileName:
       eegData.fileName,
@@ -152,10 +149,6 @@ export async function calculatePSD(
     }
   )
 
-  /*
-   * BackendでPSD計算に
-   * 失敗した場合
-   */
   if (!response.ok) {
     const errorData =
       await response.json()
@@ -166,15 +159,79 @@ export async function calculatePSD(
     )
   }
 
-  /*
-   * Welch法で計算された
-   * PSDデータを受け取る
-   */
   const psdData:
     EEGPSDData =
       await response.json()
 
   return psdData
+}
+
+
+// -------------------------
+// EEG Band Power
+// -------------------------
+
+export async function calculateBandPower(
+  eegData: EEGData
+): Promise<EEGBandPowerData> {
+
+  /*
+   * Backendの
+   * EEGBandPowerRequestに合わせる
+   */
+  const requestBody = {
+    fileName:
+      eegData.fileName,
+
+    samplingRate:
+      eegData.samplingRate,
+
+    channels:
+      eegData.channels,
+
+    data:
+      eegData.data,
+  }
+
+  const response = await fetch(
+    `${API_BASE_URL}/api/eeg/band-power`,
+    {
+      method: 'POST',
+
+      headers: {
+        'Content-Type':
+          'application/json',
+      },
+
+      body: JSON.stringify(
+        requestBody
+      ),
+    }
+  )
+
+  /*
+   * BackendでBand Power計算に
+   * 失敗した場合
+   */
+  if (!response.ok) {
+    const errorData =
+      await response.json()
+
+    throw new Error(
+      errorData.detail ??
+        'Failed to calculate band power'
+    )
+  }
+
+  /*
+   * Delta / Theta / Alpha /
+   * Beta / Gamma の結果
+   */
+  const bandPowerData:
+    EEGBandPowerData =
+      await response.json()
+
+  return bandPowerData
 }
 
 

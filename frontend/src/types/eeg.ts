@@ -1,3 +1,6 @@
+// -------------------------
+// EEG
+// -------------------------
 export type EEGData = {
   fileName: string
   samplingRate: number
@@ -5,15 +8,15 @@ export type EEGData = {
   channels: string[]
   data: number[][]
 }
-
-
 export type EEGFilterSettings = {
   highpassHz: number | null
   lowpassHz: number | null
   notchHz: number | null
 }
 
-
+// -------------------------
+// Filtered EEG
+// -------------------------
 export type EEGFilteredData = EEGData & {
   highpassHz: number | null
   lowpassHz: number | null
@@ -23,7 +26,6 @@ export type EEGFilteredData = EEGData & {
 // -------------------------
 // PSD
 // -------------------------
-
 export type EEGPSDData = {
   fileName: string
   samplingRate: number
@@ -31,4 +33,21 @@ export type EEGPSDData = {
 
   frequencies: number[]
   psd: number[][]
+}
+
+// -------------------------
+// Band Power
+// -------------------------
+export type EEGBandPowerData = {
+  fileName: string
+  samplingRate: number
+  channels: string[]
+
+  bandPower: {
+    delta: number[]
+    theta: number[]
+    alpha: number[]
+    beta: number[]
+    gamma: number[]
+  }
 }

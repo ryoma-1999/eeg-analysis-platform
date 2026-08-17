@@ -1,6 +1,10 @@
 from pydantic import BaseModel
 
 
+# -------------------------
+# EEG Upload
+# -------------------------
+
 class EEGUploadResponse(BaseModel):
     fileName: str
     samplingRate: float
@@ -8,6 +12,10 @@ class EEGUploadResponse(BaseModel):
     channels: list[str]
     data: list[list[float]]
 
+
+# -------------------------
+# EEG Filter
+# -------------------------
 
 class EEGFilterRequest(BaseModel):
     fileName: str
@@ -32,8 +40,9 @@ class EEGFilterResponse(BaseModel):
     lowpassHz: float | None
     notchHz: float | None
 
+
 # -------------------------
-# PSD
+# EEG PSD
 # -------------------------
 
 class EEGPSDRequest(BaseModel):
@@ -50,3 +59,25 @@ class EEGPSDResponse(BaseModel):
 
     frequencies: list[float]
     psd: list[list[float]]
+
+
+# -------------------------
+# EEG Band Power
+# -------------------------
+
+class EEGBandPowerRequest(BaseModel):
+    fileName: str
+    samplingRate: float
+    channels: list[str]
+    data: list[list[float]]
+
+
+class EEGBandPowerResponse(BaseModel):
+    fileName: str
+    samplingRate: float
+    channels: list[str]
+
+    bandPower: dict[
+        str,
+        list[float],
+    ]

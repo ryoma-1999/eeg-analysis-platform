@@ -13,6 +13,7 @@ import type {
 } from '../types/eeg'
 
 import PSDPanel from '../components/eeg/PSDPanel'
+import BandPowerPanel from '../components/eeg/BandPowerPanel'
 
 
 function Dashboard() {
@@ -207,6 +208,12 @@ function Dashboard() {
             }
           />
 
+          {/* Band Power */}
+          <BandPowerPanel
+            eegData={
+              displayData
+            }
+          />
 
           {/* Filter設定 */}
           <FilterPanel

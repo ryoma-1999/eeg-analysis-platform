@@ -8,6 +8,8 @@ import numpy as np
 import pandas as pd
 
 from app.schemas.eeg import (
+    EEGBandPowerRequest,
+    EEGBandPowerResponse,
     EEGFilterRequest,
     EEGFilterResponse,
     EEGPSDRequest,
@@ -20,6 +22,7 @@ from app.services.eeg_filter import (
 )
 
 from app.services.eeg_spectral import (
+    calculate_band_power,
     calculate_psd,
 )
 
@@ -255,4 +258,39 @@ def calculate_eeg_psd(
         channels=request.channels,
         frequencies=frequencies,
         psd=psd,
+    )
+
+# -------------------------
+# EEG Band Power API
+# -------------------------
+
+@router.post(
+    "/band-power",
+    response_model=EEGBandPowerResponse,
+)
+def calculate_eeg_band_power(
+    request: EEGBandPowerRequest,
+):
+    """
+    EEGデータから各周波数帯域の
+    Band Powerを計算する。
+    """
+
+    try:
+        band_power = calculate_band_power(
+            data=request.data,
+            sampling_rate=request.samplingRate,
+        )
+
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail=str(exc),
+        ) from exc
+
+    return EEGBandPowerResponse(
+        fileName=request.fileName,
+        samplingRate=request.samplingRate,
+        channels=request.channels,
+        bandPower=band_power,
     )
