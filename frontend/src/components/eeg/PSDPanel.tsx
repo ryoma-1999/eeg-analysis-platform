@@ -316,7 +316,7 @@ function PSDPanel({
             className="psd-chart"
             style={{
               width: '100%',
-              height: 320,
+              height: 170,
             }}
           >
 
