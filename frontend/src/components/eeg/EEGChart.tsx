@@ -34,6 +34,25 @@ const WINDOW_SECONDS = 10
  */
 const DISPLAY_BUCKETS = 300
 
+/*
+ * チャンネルごとの波形色。
+ * チャンネル数が色数を超えた場合は先頭から繰り返す。
+ */
+const CHANNEL_COLORS = [
+  '#2563eb',
+  '#f97316',
+  '#16a34a',
+  '#ef4444',
+  '#8b5cf6',
+  '#8b5a4a',
+  '#ec4899',
+  '#64748b',
+  '#06b6d4',
+  '#eab308',
+  '#14b8a6',
+  '#a855f7',
+]
+
 function EEGChart({ eegData }: EEGChartProps) {
   /*
    * 現在画面に表示している開始秒
@@ -516,7 +535,7 @@ function EEGChart({ eegData }: EEGChartProps) {
           ({
             channel,
             points,
-          }) => (
+          }, channelIndex) => (
             <div
               className="eeg-lane"
               key={channel}
@@ -594,6 +613,13 @@ function EEGChart({ eegData }: EEGChartProps) {
                     <Line
                       type="linear"
                       dataKey="value"
+                      stroke={
+                        CHANNEL_COLORS[
+                          channelIndex %
+                          CHANNEL_COLORS.length
+                        ]
+                      }
+                      strokeWidth={1.25}
                       dot={false}
                       isAnimationActive={
                         false
