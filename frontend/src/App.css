@@ -2343,3 +2343,39 @@
   opacity: 0.45;
   cursor: default;
 }
+
+
+/* ===== Fixed analysis card height ===== */
+
+/*
+ * 計算前後でAnalysis領域の高さを変えない。
+ * Rechartsの描画領域は各コンポーネント側で170pxに固定。
+ */
+.analysis-grid > .psd-card,
+.analysis-grid > .band-power-card {
+  height: 230px;
+  overflow: hidden;
+}
+
+.psd-placeholder,
+.band-power-placeholder {
+  min-height: 170px;
+  height: 170px;
+  margin-top: 8px;
+  box-sizing: border-box;
+}
+
+.psd-chart,
+.band-power-chart {
+  height: 170px;
+  overflow: hidden;
+}
+
+@media (max-width: 1200px) {
+  .analysis-grid > .psd-card,
+  .analysis-grid > .band-power-card {
+    height: auto;
+    min-height: 230px;
+    overflow: visible;
+  }
+}
