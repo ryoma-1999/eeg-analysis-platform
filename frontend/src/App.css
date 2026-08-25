@@ -2289,3 +2289,50 @@
   }
 }
 
+
+
+/* ===== EEG display window control ===== */
+
+.eeg-header-tools {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+}
+
+.eeg-window-control {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.eeg-window-control select {
+  height: 28px;
+  padding: 0 26px 0 9px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #334155;
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.eeg-window-control select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+@media (max-width: 760px) {
+  .eeg-header-tools {
+    width: 100%;
+    align-items: flex-start;
+    justify-content: flex-start;
+    flex-direction: column;
+  }
+}
