@@ -6,6 +6,7 @@ import {
 import {
   Bar,
   BarChart,
+  Cell,
   CartesianGrid,
   ResponsiveContainer,
   Tooltip,
@@ -26,6 +27,14 @@ import type {
 type BandPowerPanelProps = {
   eegData: EEGData | null
 }
+
+const BAND_COLORS = {
+  Delta: '#8b5cf6',
+  Theta: '#3b82f6',
+  Alpha: '#16a34a',
+  Beta: '#f59e0b',
+  Gamma: '#ef4444',
+} as const
 
 
 function BandPowerPanel({
@@ -431,7 +440,22 @@ function BandPowerPanel({
                   isAnimationActive={
                     false
                   }
-                />
+                  radius={[3, 3, 0, 0]}
+                >
+                  {chartData.map(
+                    (item) => (
+                      <Cell
+                        key={item.band}
+                        fill={
+                          BAND_COLORS[
+                            item.band as keyof
+                              typeof BAND_COLORS
+                          ]
+                        }
+                      />
+                    )
+                  )}
+                </Bar>
 
               </BarChart>
 
