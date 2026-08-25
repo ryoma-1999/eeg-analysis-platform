@@ -72,16 +72,6 @@ function EEGChart({ eegData }: EEGChartProps) {
     useRef<HTMLDivElement | null>(null)
 
   /*
-   * スクロールイベントが大量に発生しても、
-   * 1フレームに1回だけReactを更新するために使う。
-   */
-  const animationFrameRef =
-    useRef<number | null>(null)
-
-  const pendingStartSecondRef =
-    useRef(0)
-
-  /*
    * 新しいCSVを読み込んだら、
    * 横スクロール位置を最初へ戻す。
    */
@@ -92,20 +82,6 @@ function EEGChart({ eegData }: EEGChartProps) {
       horizontalScrollRef.current.scrollLeft = 0
     }
   }, [eegData])
-
-  /*
-   * コンポーネントを破棄するとき、
-   * 残っているrequestAnimationFrameを解除。
-   */
-  useEffect(() => {
-    return () => {
-      if (animationFrameRef.current !== null) {
-        cancelAnimationFrame(
-          animationFrameRef.current
-        )
-      }
-    }
-  }, [])
 
   /*
    * EEGデータ未読込
@@ -403,52 +379,23 @@ function EEGChart({ eegData }: EEGChartProps) {
      * 0〜maxStartSecondへ変換。
      */
     /*
-     * スクロール位置を10秒単位の
-     * ウィンドウ番号へ変換する。
+     * バーの位置（0〜1）を、そのまま
+     * 表示開始秒（0〜maxStartSecond）へ変換する。
      *
-     * 0   → 0〜10秒
-     * 1   → 10〜20秒
-     * 2   → 20〜30秒
+     * 例：
+     * 左端   → 0〜10秒
+     * 25%    → 5〜15秒（30秒データの場合）
+     * 右端   → 20〜30秒
      */
-    const windowCount = Math.max(
-      1,
-      Math.ceil(
-        totalDuration /
-        visibleDuration
-      )
-    )
-
-    const windowIndex = Math.round(
+    const nextStartSecond =
       scrollRatio *
-      (windowCount - 1)
-    )
-
-    const nextStartSecond = Math.min(
-      windowIndex * visibleDuration,
       maxStartSecond
-    )
-
-    pendingStartSecondRef.current =
-      nextStartSecond
 
     /*
-     * scrollイベントは非常に大量に発生するため、
-     * Reactの更新を1フレーム1回に制限。
+     * スクロール操作のたびに横軸と波形を
+     * 同じ開始秒へ更新する。
      */
-    if (
-      animationFrameRef.current !== null
-    ) {
-      return
-    }
-
-    animationFrameRef.current =
-      requestAnimationFrame(() => {
-        setStartSecond(
-          pendingStartSecondRef.current
-        )
-
-        animationFrameRef.current = null
-      })
+    setStartSecond(nextStartSecond)
   }
 
   /*
