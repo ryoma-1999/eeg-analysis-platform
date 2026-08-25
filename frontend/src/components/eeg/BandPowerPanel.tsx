@@ -365,7 +365,7 @@ function BandPowerPanel({
             className="band-power-chart"
             style={{
               width: '100%',
-              height: 320,
+              height: 170,
             }}
           >
 
