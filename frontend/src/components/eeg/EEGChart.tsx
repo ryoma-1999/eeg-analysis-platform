@@ -1,6 +1,5 @@
 import {
   useEffect,
-  useRef,
   useState,
 } from 'react'
 
@@ -66,21 +65,11 @@ function EEGChart({ eegData }: EEGChartProps) {
     useState(0)
 
   /*
-   * 下部スクロールバー本体
-   */
-  const horizontalScrollRef =
-    useRef<HTMLDivElement | null>(null)
-
-  /*
    * 新しいCSVを読み込んだら、
    * 横スクロール位置を最初へ戻す。
    */
   useEffect(() => {
     setStartSecond(0)
-
-    if (horizontalScrollRef.current) {
-      horizontalScrollRef.current.scrollLeft = 0
-    }
   }, [eegData])
 
   /*
@@ -343,88 +332,6 @@ function EEGChart({ eegData }: EEGChartProps) {
 
   /*
    * =====================================
-   * 横スクロール処理
-   * =====================================
-   */
-
-  const handleHorizontalScroll = (
-    event: React.UIEvent<HTMLDivElement>
-  ) => {
-    const element = event.currentTarget
-
-    /*
-     * 横スクロール可能な総距離
-     */
-    const maxScrollLeft =
-      element.scrollWidth -
-      element.clientWidth
-
-    if (maxScrollLeft <= 0) {
-      return
-    }
-
-    /*
-     * スクロール位置を
-     * 0〜1へ変換。
-     *
-     * 左端 = 0
-     * 右端 = 1
-     */
-    const scrollRatio =
-      element.scrollLeft /
-      maxScrollLeft
-
-    /*
-     * 0〜1を、
-     * 0〜maxStartSecondへ変換。
-     */
-    /*
-     * バーの位置（0〜1）を、そのまま
-     * 表示開始秒（0〜maxStartSecond）へ変換する。
-     *
-     * 例：
-     * 左端   → 0〜10秒
-     * 25%    → 5〜15秒（30秒データの場合）
-     * 右端   → 20〜30秒
-     */
-    const nextStartSecond =
-      scrollRatio *
-      maxStartSecond
-
-    /*
-     * スクロール操作のたびに横軸と波形を
-     * 同じ開始秒へ更新する。
-     */
-    setStartSecond(nextStartSecond)
-  }
-
-  /*
-   * =====================================
-   * 横スクロールバー内部の仮想的な幅
-   * =====================================
-   *
-   * 120秒データを10秒表示なら
-   *
-   * 120 / 10 = 12
-   *
-   * → 表示領域の1200%幅
-   *
-   * 実際の波形を1200%に引き伸ばすのではなく、
-   * スクロール位置を取得するための透明な領域。
-   */
-  const timelineWidthPercent =
-    visibleDuration > 0
-      ? Math.max(
-          100,
-          (
-            totalDuration /
-            visibleDuration
-          ) * 100
-        )
-      : 100
-
-  /*
-   * =====================================
    * 画面
    * =====================================
    */
@@ -602,25 +509,25 @@ function EEGChart({ eegData }: EEGChartProps) {
         )}
       </div>
 
-      {/* 下部横スクロールバー */}
+      {/* 下部時間スライダー */}
       <div className="eeg-time-scrollbar">
-        {/* チャンネル名部分と幅を合わせる */}
         <div className="eeg-time-scrollbar-label" />
 
-        <div
-          ref={horizontalScrollRef}
-          className="eeg-horizontal-scroll"
-          onScroll={
-            handleHorizontalScroll
+        <input
+          className="eeg-time-slider"
+          type="range"
+          min={0}
+          max={maxStartSecond}
+          step={0.1}
+          value={windowStart}
+          disabled={maxStartSecond <= 0}
+          aria-label="EEG display start time"
+          onChange={(event) =>
+            setStartSecond(
+              Number(event.target.value)
+            )
           }
-        >
-          <div
-            className="eeg-horizontal-scroll-content"
-            style={{
-              width: `${timelineWidthPercent}%`,
-            }}
-          />
-        </div>
+        />
       </div>
     </section>
   )
