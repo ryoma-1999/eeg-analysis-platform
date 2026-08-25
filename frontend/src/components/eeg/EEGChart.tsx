@@ -23,7 +23,7 @@ type EEGChartProps = {
 /*
  * 一度に画面へ表示する秒数
  */
-const WINDOW_SECONDS = 10
+type WindowDuration = 10 | 30 | 'all'
 
 /*
  * 1チャンネルあたり、
@@ -54,6 +54,15 @@ const CHANNEL_COLORS = [
 ]
 
 function EEGChart({ eegData }: EEGChartProps) {
+  /*
+   * 波形へ表示する時間幅。
+   * 初期値はデータ全体を表示する。
+   */
+  const [
+    windowDuration,
+    setWindowDuration,
+  ] = useState<WindowDuration>('all')
+
   /*
    * 現在画面に表示している開始秒
    *
@@ -91,7 +100,7 @@ function EEGChart({ eegData }: EEGChartProps) {
     if (horizontalScrollRef.current) {
       horizontalScrollRef.current.scrollLeft = 0
     }
-  }, [eegData])
+  }, [eegData, windowDuration])
 
   /*
    * コンポーネントを破棄するとき、
@@ -152,13 +161,16 @@ function EEGChart({ eegData }: EEGChartProps) {
     eegData.duration
 
   /*
-   * 10秒より短いデータの場合は、
-   * データ全体を表示。
+   * 選択された時間幅を表示する。
+   * Allの場合はデータ全体を表示。
    */
-  const visibleDuration = Math.min(
-    WINDOW_SECONDS,
-    totalDuration
-  )
+  const visibleDuration =
+    windowDuration === 'all'
+      ? totalDuration
+      : Math.min(
+          windowDuration,
+          totalDuration
+        )
 
   /*
    * 横スクロールできる最大の開始秒
@@ -474,27 +486,60 @@ function EEGChart({ eegData }: EEGChartProps) {
           </p>
         </div>
 
-        <div className="eeg-meta">
-          <span>
-            Channels:{' '}
-            {eegData.channels.length}
-          </span>
+        <div className="eeg-header-tools">
+          <div className="eeg-meta">
+            <span>
+              Channels:{' '}
+              {eegData.channels.length}
+            </span>
 
-          <span>
-            Sampling Rate:{' '}
-            {eegData.samplingRate.toFixed(
-              1
-            )}{' '}
-            Hz
-          </span>
+            <span>
+              Sampling Rate:{' '}
+              {eegData.samplingRate.toFixed(
+                1
+              )}{' '}
+              Hz
+            </span>
 
-          <span>
-            Duration:{' '}
-            {totalDuration.toFixed(
-              1
-            )}{' '}
-            s
-          </span>
+            <span>
+              Duration:{' '}
+              {totalDuration.toFixed(
+                1
+              )}{' '}
+              s
+            </span>
+          </div>
+
+          <label className="eeg-window-control">
+            Display
+
+            <select
+              value={windowDuration}
+              onChange={(event) => {
+                const value =
+                  event.target.value
+
+                setWindowDuration(
+                  value === 'all'
+                    ? 'all'
+                    : Number(value) as
+                        10 | 30
+                )
+              }}
+            >
+              <option value={10}>
+                10 sec
+              </option>
+
+              <option value={30}>
+                30 sec
+              </option>
+
+              <option value="all">
+                All
+              </option>
+            </select>
+          </label>
         </div>
       </div>
 
