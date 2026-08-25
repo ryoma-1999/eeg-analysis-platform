@@ -23,7 +23,7 @@ type EEGChartProps = {
 /*
  * 一度に画面へ表示する秒数
  */
-type WindowDuration = 10 | 30 | 'all'
+const WINDOW_SECONDS = 10
 
 /*
  * 1チャンネルあたり、
@@ -54,15 +54,6 @@ const CHANNEL_COLORS = [
 ]
 
 function EEGChart({ eegData }: EEGChartProps) {
-  /*
-   * 波形へ表示する時間幅。
-   * 初期値はデータ全体を表示する。
-   */
-  const [
-    windowDuration,
-    setWindowDuration,
-  ] = useState<WindowDuration>('all')
-
   /*
    * 現在画面に表示している開始秒
    *
@@ -100,7 +91,7 @@ function EEGChart({ eegData }: EEGChartProps) {
     if (horizontalScrollRef.current) {
       horizontalScrollRef.current.scrollLeft = 0
     }
-  }, [eegData, windowDuration])
+  }, [eegData])
 
   /*
    * コンポーネントを破棄するとき、
@@ -161,16 +152,13 @@ function EEGChart({ eegData }: EEGChartProps) {
     eegData.duration
 
   /*
-   * 選択された時間幅を表示する。
-   * Allの場合はデータ全体を表示。
+   * 常に10秒分を表示する。
+   * 10秒未満のデータは全体を表示する。
    */
-  const visibleDuration =
-    windowDuration === 'all'
-      ? totalDuration
-      : Math.min(
-          windowDuration,
-          totalDuration
-        )
+  const visibleDuration = Math.min(
+    WINDOW_SECONDS,
+    totalDuration
+  )
 
   /*
    * 横スクロールできる最大の開始秒
@@ -414,9 +402,31 @@ function EEGChart({ eegData }: EEGChartProps) {
      * 0〜1を、
      * 0〜maxStartSecondへ変換。
      */
-    const nextStartSecond =
+    /*
+     * スクロール位置を10秒単位の
+     * ウィンドウ番号へ変換する。
+     *
+     * 0   → 0〜10秒
+     * 1   → 10〜20秒
+     * 2   → 20〜30秒
+     */
+    const windowCount = Math.max(
+      1,
+      Math.ceil(
+        totalDuration /
+        visibleDuration
+      )
+    )
+
+    const windowIndex = Math.round(
       scrollRatio *
+      (windowCount - 1)
+    )
+
+    const nextStartSecond = Math.min(
+      windowIndex * visibleDuration,
       maxStartSecond
+    )
 
     pendingStartSecondRef.current =
       nextStartSecond
@@ -486,60 +496,27 @@ function EEGChart({ eegData }: EEGChartProps) {
           </p>
         </div>
 
-        <div className="eeg-header-tools">
-          <div className="eeg-meta">
-            <span>
-              Channels:{' '}
-              {eegData.channels.length}
-            </span>
+        <div className="eeg-meta">
+          <span>
+            Channels:{' '}
+            {eegData.channels.length}
+          </span>
 
-            <span>
-              Sampling Rate:{' '}
-              {eegData.samplingRate.toFixed(
-                1
-              )}{' '}
-              Hz
-            </span>
+          <span>
+            Sampling Rate:{' '}
+            {eegData.samplingRate.toFixed(
+              1
+            )}{' '}
+            Hz
+          </span>
 
-            <span>
-              Duration:{' '}
-              {totalDuration.toFixed(
-                1
-              )}{' '}
-              s
-            </span>
-          </div>
-
-          <label className="eeg-window-control">
-            Display
-
-            <select
-              value={windowDuration}
-              onChange={(event) => {
-                const value =
-                  event.target.value
-
-                setWindowDuration(
-                  value === 'all'
-                    ? 'all'
-                    : Number(value) as
-                        10 | 30
-                )
-              }}
-            >
-              <option value={10}>
-                10 sec
-              </option>
-
-              <option value={30}>
-                30 sec
-              </option>
-
-              <option value="all">
-                All
-              </option>
-            </select>
-          </label>
+          <span>
+            Duration:{' '}
+            {totalDuration.toFixed(
+              1
+            )}{' '}
+            s
+          </span>
         </div>
       </div>
 
