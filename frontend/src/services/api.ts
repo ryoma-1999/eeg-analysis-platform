@@ -104,10 +104,13 @@ export async function filterEEGData(
   }
 
   const filteredData:
-    EEGFilteredData =
+    Omit<EEGFilteredData, 'missingData'> =
       await response.json()
 
-  return filteredData
+  return {
+    ...filteredData,
+    missingData: eegData.missingData,
+  }
 }
 
 

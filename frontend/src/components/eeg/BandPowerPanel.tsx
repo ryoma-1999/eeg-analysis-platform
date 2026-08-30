@@ -41,6 +41,10 @@ function BandPowerPanel({
   eegData,
 }: BandPowerPanelProps) {
 
+  const hasMissing =
+    eegData?.missingData.hasMissing
+    ?? false
+
   // -------------------------
   // Band Power計算結果
   // -------------------------
@@ -257,6 +261,7 @@ function BandPowerPanel({
           }
           disabled={
             !eegData ||
+            hasMissing ||
             isCalculating
           }
         >
@@ -289,10 +294,15 @@ function BandPowerPanel({
         <div className="band-power-placeholder">
 
           {eegData
-            ? (
+            ? hasMissing
+              ? (
+                'Reconstruct missing EEG data before '
+                + 'calculating band power.'
+              )
+              : (
               'Click Calculate Band Power '
               + 'to analyze the EEG signal.'
-            )
+              )
             : (
               'Load EEG data before '
               + 'calculating band power.'

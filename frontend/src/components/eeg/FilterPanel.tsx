@@ -91,6 +91,10 @@ function FilterPanel({
       ? eegData.samplingRate / 2
       : null
 
+  const hasMissing =
+    eegData?.missingData.hasMissing
+    ?? false
+
 
   // -------------------------
   // Filter実行
@@ -349,6 +353,13 @@ function FilterPanel({
         </div>
       )}
 
+      {hasMissing && (
+        <div className="filter-error">
+          Reconstruct missing EEG data before
+          applying filters.
+        </div>
+      )}
+
 
       {/* Apply */}
       <div className="filter-actions">
@@ -360,6 +371,7 @@ function FilterPanel({
           }
           disabled={
             !eegData ||
+            hasMissing ||
             isFiltering
           }
         >

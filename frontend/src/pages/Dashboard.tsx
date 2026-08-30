@@ -15,6 +15,7 @@ import Sidebar from '../components/layout/Sidebar'
 import EEGChart from '../components/eeg/EEGChart'
 import FileUpload from '../components/eeg/FileUpload'
 import FilterPanel from '../components/eeg/FilterPanel'
+import MissingDataPanel from '../components/eeg/MissingDataPanel'
 import PSDPanel from '../components/eeg/PSDPanel'
 import BandPowerPanel from '../components/eeg/BandPowerPanel'
 
@@ -383,6 +384,10 @@ function Dashboard() {
             eegData={
               displayData
             }
+          />
+
+          <MissingDataPanel
+            eegData={eegData}
           />
 
 

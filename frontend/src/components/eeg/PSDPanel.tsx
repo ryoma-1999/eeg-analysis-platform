@@ -32,6 +32,10 @@ function PSDPanel({
   eegData,
 }: PSDPanelProps) {
 
+  const hasMissing =
+    eegData?.missingData.hasMissing
+    ?? false
+
   // -------------------------
   // PSD計算結果
   // -------------------------
@@ -214,6 +218,7 @@ function PSDPanel({
           }
           disabled={
             !eegData ||
+            hasMissing ||
             isCalculating
           }
         >
@@ -246,7 +251,9 @@ function PSDPanel({
         <div className="psd-placeholder">
 
           {eegData
-            ? 'Click Calculate PSD to analyze the EEG signal.'
+            ? hasMissing
+              ? 'Reconstruct missing EEG data before calculating PSD.'
+              : 'Click Calculate PSD to analyze the EEG signal.'
             : 'Load EEG data before calculating PSD.'}
 
         </div>

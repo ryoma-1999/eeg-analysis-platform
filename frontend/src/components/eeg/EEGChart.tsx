@@ -189,14 +189,18 @@ function EEGChart({ eegData }: EEGChartProps) {
          * 平均値計算
          */
         let sum = 0
+        let validCount = 0
 
         for (const value of values) {
-          sum += value
+          if (value !== null) {
+            sum += value
+            validCount++
+          }
         }
 
         const mean =
-          values.length > 0
-            ? sum / values.length
+          validCount > 0
+            ? sum / validCount
             : 0
 
         /*
@@ -224,7 +228,7 @@ function EEGChart({ eegData }: EEGChartProps) {
 
         const points: {
           time: number
-          value: number
+          value: number | null
         }[] = []
 
         for (
@@ -242,14 +246,25 @@ function EEGChart({ eegData }: EEGChartProps) {
 
           let minIndex = bucketStart
           let maxIndex = bucketStart
+          let firstMissingIndex:
+            number | null = null
 
           for (
             let index = bucketStart;
             index < bucketEnd;
             index++
           ) {
+            const rawValue = values[index]
+
+            if (rawValue === null) {
+              if (firstMissingIndex === null) {
+                firstMissingIndex = index
+              }
+              continue
+            }
+
             const centeredValue =
-              values[index] - mean
+              rawValue - mean
 
             if (centeredValue < minValue) {
               minValue = centeredValue
@@ -266,39 +281,42 @@ function EEGChart({ eegData }: EEGChartProps) {
            * 時系列順になるように
            * min/maxの順番を調整。
            */
-          if (minIndex < maxIndex) {
-            points.push({
-              time:
-                (startSample + minIndex) /
-                eegData.samplingRate,
+          const bucketPoints: {
+            index: number
+            value: number | null
+          }[] = []
+
+          if (minValue !== Infinity) {
+            bucketPoints.push({
+              index: minIndex,
               value: minValue,
             })
 
             if (maxIndex !== minIndex) {
-              points.push({
-                time:
-                  (startSample + maxIndex) /
-                  eegData.samplingRate,
+              bucketPoints.push({
+                index: maxIndex,
                 value: maxValue,
               })
             }
-          } else {
-            points.push({
-              time:
-                (startSample + maxIndex) /
-                eegData.samplingRate,
-              value: maxValue,
-            })
+          }
 
-            if (maxIndex !== minIndex) {
+          if (firstMissingIndex !== null) {
+            bucketPoints.push({
+              index: firstMissingIndex,
+              value: null,
+            })
+          }
+
+          bucketPoints
+            .sort((a, b) => a.index - b.index)
+            .forEach((point) => {
               points.push({
                 time:
-                  (startSample + minIndex) /
+                  (startSample + point.index) /
                   eegData.samplingRate,
-                value: minValue,
+                value: point.value,
               })
-            }
-          }
+            })
         }
 
         return {
@@ -318,10 +336,12 @@ function EEGChart({ eegData }: EEGChartProps) {
 
   for (const channel of channelData) {
     for (const point of channel.points) {
-      maxAmplitude = Math.max(
-        maxAmplitude,
-        Math.abs(point.value)
-      )
+        if (point.value !== null) {
+          maxAmplitude = Math.max(
+            maxAmplitude,
+            Math.abs(point.value)
+          )
+        }
     }
   }
 
@@ -497,6 +517,7 @@ function EEGChart({ eegData }: EEGChartProps) {
                       }
                       strokeWidth={1.25}
                       dot={false}
+                      connectNulls={false}
                       isAnimationActive={
                         false
                       }

@@ -12,6 +12,9 @@ from app.schemas.eeg import (
     EEGBandPowerResponse,
     EEGFilterRequest,
     EEGFilterResponse,
+    EEGChannelMissingInfo,
+    EEGMissingDataInfo,
+    EEGMissingSegment,
     EEGPSDRequest,
     EEGPSDResponse,
     EEGUploadResponse,
@@ -110,16 +113,6 @@ def upload_eeg(file: UploadFile):
             ),
         ) from exc
 
-    # 欠損値チェック
-    if eeg_values.isnull().values.any():
-        raise HTTPException(
-            status_code=400,
-            detail=(
-                "Missing EEG values "
-                "are not supported yet."
-            ),
-        )
-
     # 最低2サンプル必要
     if len(time_values) < 2:
         raise HTTPException(
@@ -153,15 +146,108 @@ def upload_eeg(file: UploadFile):
         - time_values[0]
     )
 
+    # 欠損情報をチャンネルごとに集計
+    missing_channels = []
+    total_missing_count = 0
+    sample_count = len(time_values)
+
+    for channel in channels:
+        missing_mask = (
+            eeg_values[channel]
+            .isnull()
+            .to_numpy()
+        )
+
+        missing_count = int(
+            missing_mask.sum()
+        )
+        total_missing_count += missing_count
+
+        segments = []
+        segment_start = None
+
+        for index, is_missing in enumerate(
+            missing_mask
+        ):
+            if is_missing and segment_start is None:
+                segment_start = index
+
+            is_last_sample = (
+                index == sample_count - 1
+            )
+
+            if (
+                segment_start is not None
+                and (
+                    not is_missing
+                    or is_last_sample
+                )
+            ):
+                segment_end = (
+                    index
+                    if is_missing and is_last_sample
+                    else index - 1
+                )
+
+                segments.append(
+                    EEGMissingSegment(
+                        startSample=segment_start,
+                        endSample=segment_end,
+                        sampleCount=(
+                            segment_end
+                            - segment_start
+                            + 1
+                        ),
+                        startTime=float(
+                            time_values[segment_start]
+                        ),
+                        endTime=float(
+                            time_values[segment_end]
+                        ),
+                    )
+                )
+                segment_start = None
+
+        if missing_count > 0:
+            missing_channels.append(
+                EEGChannelMissingInfo(
+                    channel=channel,
+                    missingCount=missing_count,
+                    missingRate=(
+                        missing_count
+                        / sample_count
+                    ),
+                    segments=segments,
+                )
+            )
+
+    total_value_count = (
+        sample_count * len(channels)
+    )
+
+    missing_data = EEGMissingDataInfo(
+        hasMissing=total_missing_count > 0,
+        totalMissingCount=total_missing_count,
+        totalValueCount=total_value_count,
+        missingRate=(
+            total_missing_count
+            / total_value_count
+        ),
+        channels=missing_channels,
+    )
+
     # [sample][channel]
     # ↓
     # [channel][sample]
-    data = (
-        eeg_values
-        .to_numpy()
-        .T
-        .tolist()
-    )
+    data = [
+        [
+            None
+            if pd.isna(value)
+            else float(value)
+            for value in eeg_values[channel]
+        ]
+        for channel in channels
+    ]
 
     return EEGUploadResponse(
         fileName=filename,
@@ -169,6 +255,7 @@ def upload_eeg(file: UploadFile):
         duration=duration,
         channels=channels,
         data=data,
+        missingData=missing_data,
     )
 
 

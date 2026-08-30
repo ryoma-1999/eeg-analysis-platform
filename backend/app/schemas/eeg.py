@@ -5,12 +5,36 @@ from pydantic import BaseModel
 # EEG Upload
 # -------------------------
 
+class EEGMissingSegment(BaseModel):
+    startSample: int
+    endSample: int
+    sampleCount: int
+    startTime: float
+    endTime: float
+
+
+class EEGChannelMissingInfo(BaseModel):
+    channel: str
+    missingCount: int
+    missingRate: float
+    segments: list[EEGMissingSegment]
+
+
+class EEGMissingDataInfo(BaseModel):
+    hasMissing: bool
+    totalMissingCount: int
+    totalValueCount: int
+    missingRate: float
+    channels: list[EEGChannelMissingInfo]
+
+
 class EEGUploadResponse(BaseModel):
     fileName: str
     samplingRate: float
     duration: float
     channels: list[str]
-    data: list[list[float]]
+    data: list[list[float | None]]
+    missingData: EEGMissingDataInfo
 
 
 # -------------------------

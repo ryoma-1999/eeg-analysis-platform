@@ -2379,3 +2379,100 @@
     overflow: visible;
   }
 }
+/* =========================================================
+   Missing EEG Data
+========================================================= */
+
+.missing-data-card {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 16px 18px;
+  border: 1px solid;
+  border-radius: 12px;
+}
+
+.missing-data-card p {
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.missing-data-card.complete {
+  align-items: center;
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+.missing-data-card.warning {
+  display: block;
+  border-color: #fed7aa;
+  background: #fff7ed;
+}
+
+.missing-data-header,
+.missing-data-title,
+.missing-data-summary,
+.missing-channel-item {
+  display: flex;
+}
+
+.missing-data-header,
+.missing-channel-item {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.missing-data-title {
+  align-items: flex-start;
+  gap: 10px;
+  color: #c2410c;
+}
+
+.missing-data-rate {
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #ffedd5;
+  color: #c2410c;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.missing-data-summary {
+  gap: 28px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #fed7aa;
+}
+
+.missing-data-summary span {
+  display: grid;
+  gap: 3px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.missing-data-summary strong {
+  color: #334155;
+  font-size: 14px;
+}
+
+.missing-channel-list {
+  display: grid;
+  gap: 7px;
+  margin-top: 14px;
+}
+
+.missing-channel-item {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.7);
+  color: #334155;
+  font-size: 13px;
+}
+
+.missing-channel-item span {
+  color: #64748b;
+  font-size: 12px;
+}
