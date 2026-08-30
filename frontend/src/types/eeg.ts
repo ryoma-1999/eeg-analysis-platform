@@ -38,6 +38,24 @@ export type EEGReconstructedData = EEGData & {
   reconstructedCount: number
 }
 
+export type EEGChannelEvaluationMetric = {
+  channelIndex: number
+  maskedCount: number
+  rmse: number
+  mae: number
+}
+
+export type EEGReconstructionEvaluation = {
+  method: 'linear'
+  maskRate: number
+  gapDurationSeconds: number
+  maskedCount: number
+  rmse: number
+  mae: number
+  correlation: number | null
+  channelMetrics: EEGChannelEvaluationMetric[]
+}
+
 export type EEGFilterSettings = {
   highpassHz: number | null
   lowpassHz: number | null

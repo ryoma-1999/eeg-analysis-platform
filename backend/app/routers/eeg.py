@@ -19,6 +19,8 @@ from app.schemas.eeg import (
     EEGPSDResponse,
     EEGReconstructionRequest,
     EEGReconstructionResponse,
+    EEGReconstructionEvaluationRequest,
+    EEGReconstructionEvaluationResponse,
     EEGUploadResponse,
 )
 
@@ -32,6 +34,7 @@ from app.services.eeg_spectral import (
 )
 
 from app.services.eeg_reconstruction import (
+    evaluate_linear_reconstruction,
     reconstruct_eeg_linear,
 )
 
@@ -309,6 +312,37 @@ def reconstruct_eeg(
         ),
         reconstructionMethod="linear",
         reconstructedCount=reconstructed_count,
+    )
+
+
+@router.post(
+    "/reconstruction/evaluate-linear",
+    response_model=(
+        EEGReconstructionEvaluationResponse
+    ),
+)
+def evaluate_linear_reconstruction_api(
+    request: EEGReconstructionEvaluationRequest,
+):
+    try:
+        result = evaluate_linear_reconstruction(
+            data=request.data,
+            sampling_rate=request.samplingRate,
+            mask_rate=request.maskRate,
+            gap_duration_seconds=(
+                request.gapDurationSeconds
+            ),
+            random_seed=request.randomSeed,
+        )
+
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail=str(exc),
+        ) from exc
+
+    return EEGReconstructionEvaluationResponse(
+        **result
     )
 
 

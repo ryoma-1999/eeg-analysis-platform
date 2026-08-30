@@ -1,12 +1,17 @@
-import { useState } from 'react'
+import {
+  useEffect,
+  useState,
+} from 'react'
 import { Sparkles } from 'lucide-react'
 
 import {
+  evaluateLinearReconstruction,
   reconstructEEGData,
 } from '../../services/api'
 
 import type {
   EEGData,
+  EEGReconstructionEvaluation,
   EEGReconstructedData,
 } from '../../types/eeg'
 
@@ -35,9 +40,26 @@ function ReconstructionPanel({
     setError,
   ] = useState<string | null>(null)
 
+  const [
+    isEvaluating,
+    setIsEvaluating,
+  ] = useState(false)
+
+  const [
+    evaluation,
+    setEvaluation,
+  ] = useState<
+    EEGReconstructionEvaluation | null
+  >(null)
+
   const hasMissing =
     eegData?.missingData.hasMissing
     ?? false
+
+  useEffect(() => {
+    setEvaluation(null)
+    setError(null)
+  }, [eegData])
 
   const handleReconstruct = async () => {
     if (!eegData || !hasMissing) {
@@ -64,6 +86,36 @@ function ReconstructionPanel({
 
     } finally {
       setIsReconstructing(false)
+    }
+  }
+
+  const handleEvaluate = async () => {
+    if (!eegData || hasMissing) {
+      return
+    }
+
+    setError(null)
+    setIsEvaluating(true)
+
+    try {
+      const result =
+        await evaluateLinearReconstruction(
+          eegData
+        )
+
+      setEvaluation(result)
+
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message)
+      } else {
+        setError(
+          'Failed to evaluate reconstruction'
+        )
+      }
+
+    } finally {
+      setIsEvaluating(false)
     }
   }
 
@@ -102,6 +154,38 @@ function ReconstructionPanel({
         </div>
       )}
 
+      {evaluation && (
+        <div className="reconstruction-metrics">
+          <div>
+            <span>RMSE</span>
+            <strong>
+              {evaluation.rmse.toFixed(4)}
+            </strong>
+          </div>
+
+          <div>
+            <span>MAE</span>
+            <strong>
+              {evaluation.mae.toFixed(4)}
+            </strong>
+          </div>
+
+          <div>
+            <span>Correlation</span>
+            <strong>
+              {evaluation.correlation === null
+                ? '—'
+                : evaluation.correlation.toFixed(4)}
+            </strong>
+          </div>
+
+          <small>
+            {evaluation.maskedCount} known samples
+            were hidden and reconstructed.
+          </small>
+        </div>
+      )}
+
       <button
         type="button"
         onClick={handleReconstruct}
@@ -116,6 +200,21 @@ function ReconstructionPanel({
           : reconstructedData
             ? 'Run Again'
             : 'Run Reconstruction'}
+      </button>
+
+      <button
+        type="button"
+        className="reconstruction-evaluate-button"
+        onClick={handleEvaluate}
+        disabled={
+          !eegData
+          || hasMissing
+          || isEvaluating
+        }
+      >
+        {isEvaluating
+          ? 'Evaluating...'
+          : 'Evaluate Linear Baseline'}
       </button>
     </section>
   )

@@ -5,6 +5,7 @@ import type {
   EEGFilterSettings,
   EEGPSDData,
   EEGReconstructedData,
+  EEGReconstructionEvaluation,
 } from '../types/eeg'
 
 
@@ -49,6 +50,45 @@ export async function reconstructEEGData(
       await response.json()
 
   return reconstructedData
+}
+
+
+export async function evaluateLinearReconstruction(
+  eegData: EEGData
+): Promise<EEGReconstructionEvaluation> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/eeg/reconstruction/evaluate-linear`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        fileName: eegData.fileName,
+        samplingRate: eegData.samplingRate,
+        channels: eegData.channels,
+        data: eegData.data,
+        maskRate: 0.1,
+        gapDurationSeconds: 0.2,
+        randomSeed: 42,
+      }),
+    }
+  )
+
+  if (!response.ok) {
+    const errorData = await response.json()
+
+    throw new Error(
+      errorData.detail
+      ?? 'Failed to evaluate reconstruction'
+    )
+  }
+
+  const evaluation:
+    EEGReconstructionEvaluation =
+      await response.json()
+
+  return evaluation
 }
 
 

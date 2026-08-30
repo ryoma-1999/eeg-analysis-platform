@@ -60,6 +60,36 @@ class EEGReconstructionResponse(BaseModel):
     reconstructedCount: int
 
 
+class EEGReconstructionEvaluationRequest(BaseModel):
+    fileName: str
+    samplingRate: float
+    channels: list[str]
+    data: list[list[float]]
+    maskRate: float = 0.1
+    gapDurationSeconds: float = 0.2
+    randomSeed: int = 42
+
+
+class EEGChannelEvaluationMetric(BaseModel):
+    channelIndex: int
+    maskedCount: int
+    rmse: float
+    mae: float
+
+
+class EEGReconstructionEvaluationResponse(BaseModel):
+    method: str
+    maskRate: float
+    gapDurationSeconds: float
+    maskedCount: int
+    rmse: float
+    mae: float
+    correlation: float | None
+    channelMetrics: list[
+        EEGChannelEvaluationMetric
+    ]
+
+
 # -------------------------
 # EEG Filter
 # -------------------------
