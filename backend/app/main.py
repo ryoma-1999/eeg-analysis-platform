@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 
 from app.routers import eeg
 
@@ -7,6 +8,11 @@ from app.routers import eeg
 app = FastAPI(
     title="EEG Analysis API",
     version="0.1.0",
+)
+
+app.add_middleware(
+    GZipMiddleware,
+    minimum_size=1000,
 )
 
 

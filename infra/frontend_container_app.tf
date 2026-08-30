@@ -23,7 +23,7 @@ resource "azurerm_container_app" "frontend" {
 
     container {
       name   = "frontend"
-      image  = "${azurerm_container_registry.eeg.login_server}/eeg-frontend:v3"
+      image  = "${azurerm_container_registry.eeg.login_server}/eeg-frontend:${var.frontend_image_tag}"
       cpu    = 0.25
       memory = "0.5Gi"
 
@@ -36,7 +36,7 @@ resource "azurerm_container_app" "frontend" {
 
   ingress {
     external_enabled = true
-    target_port      = 5173
+    target_port      = 80
     transport        = "http"
 
     traffic_weight {

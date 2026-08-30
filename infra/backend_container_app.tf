@@ -23,7 +23,7 @@ resource "azurerm_container_app" "backend" {
 
     container {
       name   = "backend"
-      image  = "${azurerm_container_registry.eeg.login_server}/eeg-backend:v1"
+      image  = "${azurerm_container_registry.eeg.login_server}/eeg-backend:${var.backend_image_tag}"
       cpu    = 0.5
       memory = "1Gi"
     }
