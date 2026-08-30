@@ -10,7 +10,7 @@ import type {
 } from '../types/eeg'
 
 
-const API_BASE_URL = 'http://localhost:8000'
+const API_BASE_URL = ''
 
 const DEFAULT_RECONSTRUCTION_EVALUATION_SETTINGS = {
   maskRate: 0.1,
