@@ -34,7 +34,7 @@ export type EEGMissingDataInfo = {
 }
 
 export type EEGReconstructedData = EEGData & {
-  reconstructionMethod: 'linear'
+  reconstructionMethod: 'linear' | 'mlp'
   reconstructedCount: number
 }
 
@@ -46,7 +46,7 @@ export type EEGChannelEvaluationMetric = {
 }
 
 export type EEGReconstructionEvaluation = {
-  method: 'linear'
+  method: 'linear' | 'mlp'
   maskRate: number
   gapDurationSeconds: number
   maskedCount: number

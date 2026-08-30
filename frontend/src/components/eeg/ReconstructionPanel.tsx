@@ -6,7 +6,9 @@ import { Sparkles } from 'lucide-react'
 
 import {
   evaluateLinearReconstruction,
+  evaluateMLPReconstruction,
   reconstructEEGData,
+  reconstructEEGDataMLP,
 } from '../../services/api'
 
 import type {
@@ -30,48 +32,45 @@ function ReconstructionPanel({
   reconstructedData,
   onReconstructionSuccess,
 }: ReconstructionPanelProps) {
-  const [
-    isReconstructing,
-    setIsReconstructing,
-  ] = useState(false)
+  const [reconstructingMethod, setReconstructingMethod] =
+    useState<'linear' | 'mlp' | null>(null)
 
   const [
     error,
     setError,
   ] = useState<string | null>(null)
 
-  const [
-    isEvaluating,
-    setIsEvaluating,
-  ] = useState(false)
+  const [evaluatingMethod, setEvaluatingMethod] =
+    useState<'linear' | 'mlp' | null>(null)
 
-  const [
-    evaluation,
-    setEvaluation,
-  ] = useState<
-    EEGReconstructionEvaluation | null
-  >(null)
+  const [evaluations, setEvaluations] = useState<{
+    linear: EEGReconstructionEvaluation | null
+    mlp: EEGReconstructionEvaluation | null
+  }>({ linear: null, mlp: null })
 
   const hasMissing =
     eegData?.missingData.hasMissing
     ?? false
 
   useEffect(() => {
-    setEvaluation(null)
+    setEvaluations({ linear: null, mlp: null })
     setError(null)
   }, [eegData])
 
-  const handleReconstruct = async () => {
+  const handleReconstruct = async (
+    method: 'linear' | 'mlp'
+  ) => {
     if (!eegData || !hasMissing) {
       return
     }
 
     setError(null)
-    setIsReconstructing(true)
+    setReconstructingMethod(method)
 
     try {
-      const result =
-        await reconstructEEGData(eegData)
+      const result = method === 'linear'
+        ? await reconstructEEGData(eegData)
+        : await reconstructEEGDataMLP(eegData)
 
       onReconstructionSuccess(result)
 
@@ -85,25 +84,29 @@ function ReconstructionPanel({
       }
 
     } finally {
-      setIsReconstructing(false)
+      setReconstructingMethod(null)
     }
   }
 
-  const handleEvaluate = async () => {
+  const handleEvaluate = async (
+    method: 'linear' | 'mlp'
+  ) => {
     if (!eegData || hasMissing) {
       return
     }
 
     setError(null)
-    setIsEvaluating(true)
+    setEvaluatingMethod(method)
 
     try {
-      const result =
-        await evaluateLinearReconstruction(
-          eegData
-        )
+      const result = method === 'linear'
+        ? await evaluateLinearReconstruction(eegData)
+        : await evaluateMLPReconstruction(eegData)
 
-      setEvaluation(result)
+      setEvaluations(current => ({
+        ...current,
+        [method]: result,
+      }))
 
     } catch (error) {
       if (error instanceof Error) {
@@ -115,7 +118,7 @@ function ReconstructionPanel({
       }
 
     } finally {
-      setIsEvaluating(false)
+      setEvaluatingMethod(null)
     }
   }
 
@@ -127,15 +130,15 @@ function ReconstructionPanel({
         </div>
 
         <span className="reconstruction-method">
-          Linear Baseline
+          Linear / AI
         </span>
       </div>
 
       <h3>Reconstruction</h3>
 
       <p>
-        Reconstruct missing samples using
-        channel-wise linear interpolation.
+        Compare channel-wise linear interpolation
+        with a bidirectional autoregressive MLP.
       </p>
 
       {reconstructedData && (
@@ -145,6 +148,12 @@ function ReconstructionPanel({
             {reconstructedData.reconstructedCount}
           </strong>{' '}
           samples
+          {' '}with{' '}
+          <strong>
+            {reconstructedData.reconstructionMethod === 'mlp'
+              ? 'AI (MLP)'
+              : 'Linear'}
+          </strong>
         </div>
       )}
 
@@ -154,68 +163,64 @@ function ReconstructionPanel({
         </div>
       )}
 
-      {evaluation && (
-        <div className="reconstruction-metrics">
-          <div>
-            <span>RMSE</span>
-            <strong>
-              {evaluation.rmse.toFixed(4)}
-            </strong>
-          </div>
+      {(evaluations.linear || evaluations.mlp) && (
+        <div className="reconstruction-comparison">
+          {(['linear', 'mlp'] as const).map(method => {
+            const evaluation = evaluations[method]
 
-          <div>
-            <span>MAE</span>
-            <strong>
-              {evaluation.mae.toFixed(4)}
-            </strong>
-          </div>
-
-          <div>
-            <span>Correlation</span>
-            <strong>
-              {evaluation.correlation === null
-                ? '—'
-                : evaluation.correlation.toFixed(4)}
-            </strong>
-          </div>
-
-          <small>
-            {evaluation.maskedCount} known samples
-            were hidden and reconstructed.
-          </small>
+            return evaluation && (
+              <div className="reconstruction-evaluation" key={method}>
+                <h4>{method === 'linear' ? 'Linear' : 'AI (MLP)'}</h4>
+                <div className="reconstruction-metrics">
+                  <div><span>RMSE</span><strong>{evaluation.rmse.toFixed(4)}</strong></div>
+                  <div><span>MAE</span><strong>{evaluation.mae.toFixed(4)}</strong></div>
+                  <div>
+                    <span>Correlation</span>
+                    <strong>{evaluation.correlation === null ? '—' : evaluation.correlation.toFixed(4)}</strong>
+                  </div>
+                </div>
+                <small>{evaluation.maskedCount} known samples were hidden and reconstructed.</small>
+              </div>
+            )
+          })}
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={handleReconstruct}
-        disabled={
-          !eegData
-          || !hasMissing
-          || isReconstructing
-        }
-      >
-        {isReconstructing
-          ? 'Reconstructing...'
-          : reconstructedData
-            ? 'Run Again'
-            : 'Run Reconstruction'}
-      </button>
+      <div className="reconstruction-actions">
+        <button
+          type="button"
+          onClick={() => handleReconstruct('linear')}
+          disabled={!eegData || !hasMissing || reconstructingMethod !== null}
+        >
+          {reconstructingMethod === 'linear' ? 'Reconstructing...' : 'Run Linear Reconstruction'}
+        </button>
+        <button
+          type="button"
+          onClick={() => handleReconstruct('mlp')}
+          disabled={!eegData || !hasMissing || reconstructingMethod !== null}
+        >
+          {reconstructingMethod === 'mlp' ? 'Training AI...' : 'Run AI Reconstruction'}
+        </button>
+      </div>
 
-      <button
-        type="button"
-        className="reconstruction-evaluate-button"
-        onClick={handleEvaluate}
-        disabled={
-          !eegData
-          || hasMissing
-          || isEvaluating
-        }
-      >
-        {isEvaluating
-          ? 'Evaluating...'
-          : 'Evaluate Linear Baseline'}
-      </button>
+      <div className="reconstruction-actions">
+        <button
+          type="button"
+          className="reconstruction-evaluate-button"
+          onClick={() => handleEvaluate('linear')}
+          disabled={!eegData || hasMissing || evaluatingMethod !== null}
+        >
+          {evaluatingMethod === 'linear' ? 'Evaluating...' : 'Evaluate Linear'}
+        </button>
+        <button
+          type="button"
+          className="reconstruction-evaluate-button"
+          onClick={() => handleEvaluate('mlp')}
+          disabled={!eegData || hasMissing || evaluatingMethod !== null}
+        >
+          {evaluatingMethod === 'mlp' ? 'Training & Evaluating...' : 'Evaluate AI'}
+        </button>
+      </div>
     </section>
   )
 }

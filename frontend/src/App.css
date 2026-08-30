@@ -2543,6 +2543,12 @@
   margin-top: 16px;
 }
 
+.reconstruction-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
 .reconstruction-evaluate-button {
   margin-top: 9px !important;
   background: #ffffff !important;
@@ -2554,6 +2560,37 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   margin-top: 14px;
+}
+
+.reconstruction-comparison {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.reconstruction-evaluation {
+  padding: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.reconstruction-evaluation h4 {
+  margin: 0;
+  color: #334155;
+  font-size: 13px;
+}
+
+.reconstruction-evaluation .reconstruction-metrics {
+  margin-top: 8px;
+}
+
+.reconstruction-evaluation > small {
+  display: block;
+  margin-top: 8px;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.4;
 }
 
 .reconstruction-metrics > div {
@@ -2580,4 +2617,11 @@
   color: #64748b;
   font-size: 11px;
   line-height: 1.4;
+}
+
+@media (max-width: 720px) {
+  .reconstruction-actions,
+  .reconstruction-comparison {
+    grid-template-columns: 1fr;
+  }
 }

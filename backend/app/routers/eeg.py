@@ -35,7 +35,9 @@ from app.services.eeg_spectral import (
 
 from app.services.eeg_reconstruction import (
     evaluate_linear_reconstruction,
+    evaluate_mlp_reconstruction,
     reconstruct_eeg_linear,
+    reconstruct_eeg_mlp,
 )
 
 
@@ -316,6 +318,49 @@ def reconstruct_eeg(
 
 
 @router.post(
+    "/reconstruct-mlp",
+    response_model=EEGReconstructionResponse,
+)
+def reconstruct_eeg_with_mlp(
+    request: EEGReconstructionRequest,
+):
+    try:
+        reconstructed_data, reconstructed_count = (
+            reconstruct_eeg_mlp(
+                data=request.data,
+            )
+        )
+
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail=str(exc),
+        ) from exc
+
+    total_value_count = sum(
+        len(channel_data)
+        for channel_data in reconstructed_data
+    )
+
+    return EEGReconstructionResponse(
+        fileName=request.fileName,
+        samplingRate=request.samplingRate,
+        duration=request.duration,
+        channels=request.channels,
+        data=reconstructed_data,
+        missingData=EEGMissingDataInfo(
+            hasMissing=False,
+            totalMissingCount=0,
+            totalValueCount=total_value_count,
+            missingRate=0.0,
+            channels=[],
+        ),
+        reconstructionMethod="mlp",
+        reconstructedCount=reconstructed_count,
+    )
+
+
+@router.post(
     "/reconstruction/evaluate-linear",
     response_model=(
         EEGReconstructionEvaluationResponse
@@ -326,6 +371,37 @@ def evaluate_linear_reconstruction_api(
 ):
     try:
         result = evaluate_linear_reconstruction(
+            data=request.data,
+            sampling_rate=request.samplingRate,
+            mask_rate=request.maskRate,
+            gap_duration_seconds=(
+                request.gapDurationSeconds
+            ),
+            random_seed=request.randomSeed,
+        )
+
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail=str(exc),
+        ) from exc
+
+    return EEGReconstructionEvaluationResponse(
+        **result
+    )
+
+
+@router.post(
+    "/reconstruction/evaluate-mlp",
+    response_model=(
+        EEGReconstructionEvaluationResponse
+    ),
+)
+def evaluate_mlp_reconstruction_api(
+    request: EEGReconstructionEvaluationRequest,
+):
+    try:
+        result = evaluate_mlp_reconstruction(
             data=request.data,
             sampling_rate=request.samplingRate,
             mask_rate=request.maskRate,

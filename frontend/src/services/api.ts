@@ -53,6 +53,39 @@ export async function reconstructEEGData(
 }
 
 
+export async function reconstructEEGDataMLP(
+  eegData: EEGData
+): Promise<EEGReconstructedData> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/eeg/reconstruct-mlp`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        fileName: eegData.fileName,
+        samplingRate: eegData.samplingRate,
+        duration: eegData.duration,
+        channels: eegData.channels,
+        data: eegData.data,
+      }),
+    }
+  )
+
+  if (!response.ok) {
+    const errorData = await response.json()
+
+    throw new Error(
+      errorData.detail
+      ?? 'Failed to reconstruct EEG data with AI'
+    )
+  }
+
+  return await response.json()
+}
+
+
 export async function evaluateLinearReconstruction(
   eegData: EEGData
 ): Promise<EEGReconstructionEvaluation> {
@@ -89,6 +122,41 @@ export async function evaluateLinearReconstruction(
       await response.json()
 
   return evaluation
+}
+
+
+export async function evaluateMLPReconstruction(
+  eegData: EEGData
+): Promise<EEGReconstructionEvaluation> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/eeg/reconstruction/evaluate-mlp`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        fileName: eegData.fileName,
+        samplingRate: eegData.samplingRate,
+        channels: eegData.channels,
+        data: eegData.data,
+        maskRate: 0.1,
+        gapDurationSeconds: 0.2,
+        randomSeed: 42,
+      }),
+    }
+  )
+
+  if (!response.ok) {
+    const errorData = await response.json()
+
+    throw new Error(
+      errorData.detail
+      ?? 'Failed to evaluate AI reconstruction'
+    )
+  }
+
+  return await response.json()
 }
 
 
