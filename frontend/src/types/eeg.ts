@@ -56,6 +56,12 @@ export type EEGReconstructionEvaluation = {
   channelMetrics: EEGChannelEvaluationMetric[]
 }
 
+export type EEGReconstructionEvaluationSettings = {
+  maskRate: number
+  gapDurationSeconds: number
+  randomSeed: number
+}
+
 export type EEGFilterSettings = {
   highpassHz: number | null
   lowpassHz: number | null

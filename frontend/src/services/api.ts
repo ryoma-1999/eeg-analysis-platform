@@ -6,11 +6,17 @@ import type {
   EEGPSDData,
   EEGReconstructedData,
   EEGReconstructionEvaluation,
+  EEGReconstructionEvaluationSettings,
 } from '../types/eeg'
 
 
 const API_BASE_URL = 'http://localhost:8000'
 
+const DEFAULT_RECONSTRUCTION_EVALUATION_SETTINGS = {
+  maskRate: 0.1,
+  gapDurationSeconds: 0.2,
+  randomSeed: 42,
+}
 
 // -------------------------
 // EEG Reconstruction
@@ -87,7 +93,10 @@ export async function reconstructEEGDataMLP(
 
 
 export async function evaluateLinearReconstruction(
-  eegData: EEGData
+  eegData: EEGData,
+  settings:
+    EEGReconstructionEvaluationSettings =
+      DEFAULT_RECONSTRUCTION_EVALUATION_SETTINGS
 ): Promise<EEGReconstructionEvaluation> {
   const response = await fetch(
     `${API_BASE_URL}/api/eeg/reconstruction/evaluate-linear`,
@@ -101,9 +110,9 @@ export async function evaluateLinearReconstruction(
         samplingRate: eegData.samplingRate,
         channels: eegData.channels,
         data: eegData.data,
-        maskRate: 0.1,
-        gapDurationSeconds: 0.2,
-        randomSeed: 42,
+        maskRate: settings.maskRate,
+        gapDurationSeconds: settings.gapDurationSeconds,
+        randomSeed: settings.randomSeed,
       }),
     }
   )
@@ -126,7 +135,10 @@ export async function evaluateLinearReconstruction(
 
 
 export async function evaluateMLPReconstruction(
-  eegData: EEGData
+  eegData: EEGData,
+  settings:
+    EEGReconstructionEvaluationSettings =
+      DEFAULT_RECONSTRUCTION_EVALUATION_SETTINGS
 ): Promise<EEGReconstructionEvaluation> {
   const response = await fetch(
     `${API_BASE_URL}/api/eeg/reconstruction/evaluate-mlp`,
@@ -140,9 +152,9 @@ export async function evaluateMLPReconstruction(
         samplingRate: eegData.samplingRate,
         channels: eegData.channels,
         data: eegData.data,
-        maskRate: 0.1,
-        gapDurationSeconds: 0.2,
-        randomSeed: 42,
+        maskRate: settings.maskRate,
+        gapDurationSeconds: settings.gapDurationSeconds,
+        randomSeed: settings.randomSeed,
       }),
     }
   )
