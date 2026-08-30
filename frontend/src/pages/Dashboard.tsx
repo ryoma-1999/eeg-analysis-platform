@@ -6,7 +6,6 @@ import {
   Clock3,
   FileText,
   Radio,
-  Sparkles,
 } from 'lucide-react'
 
 import Header from '../components/layout/Header'
@@ -16,12 +15,14 @@ import EEGChart from '../components/eeg/EEGChart'
 import FileUpload from '../components/eeg/FileUpload'
 import FilterPanel from '../components/eeg/FilterPanel'
 import MissingDataPanel from '../components/eeg/MissingDataPanel'
+import ReconstructionPanel from '../components/eeg/ReconstructionPanel'
 import PSDPanel from '../components/eeg/PSDPanel'
 import BandPowerPanel from '../components/eeg/BandPowerPanel'
 
 import type {
   EEGData,
   EEGFilteredData,
+  EEGReconstructedData,
 } from '../types/eeg'
 
 
@@ -35,6 +36,20 @@ function Dashboard() {
     eegData,
     setEEGData,
   ] = useState<EEGData | null>(
+    null
+  )
+
+
+  /* =========================================================
+     Reconstructed EEG
+  ========================================================= */
+
+  const [
+    reconstructedData,
+    setReconstructedData,
+  ] = useState<
+    EEGReconstructedData | null
+  >(
     null
   )
 
@@ -61,7 +76,9 @@ function Dashboard() {
     displaySource,
     setDisplaySource,
   ] = useState<
-    'original' | 'filtered'
+    'original'
+    | 'reconstructed'
+    | 'filtered'
   >(
     'original'
   )
@@ -80,6 +97,8 @@ function Dashboard() {
      */
     setEEGData(data)
 
+    setReconstructedData(null)
+
 
     /*
      * 以前のFiltered EEGは削除
@@ -93,6 +112,19 @@ function Dashboard() {
     setDisplaySource(
       'original'
     )
+  }
+
+
+  /* =========================================================
+     Reconstruction Success
+  ========================================================= */
+
+  const handleReconstructionSuccess = (
+    data: EEGReconstructedData
+  ) => {
+    setReconstructedData(data)
+    setFilteredData(null)
+    setDisplaySource('reconstructed')
   }
 
 
@@ -127,6 +159,13 @@ function Dashboard() {
   let displayData:
     EEGData | null = eegData
 
+  if (
+    displaySource === 'reconstructed'
+    && reconstructedData
+  ) {
+    displayData = reconstructedData
+  }
+
 
   if (
     displaySource === 'filtered'
@@ -136,6 +175,11 @@ function Dashboard() {
     displayData =
       filteredData
   }
+
+  const filterInputData =
+    eegData?.missingData.hasMissing
+      ? reconstructedData
+      : eegData
 
 
   /* =========================================================
@@ -355,6 +399,27 @@ function Dashboard() {
                 type="button"
                 className={
                   displaySource ===
+                  'reconstructed'
+                    ? 'active'
+                    : ''
+                }
+                disabled={
+                  !reconstructedData
+                }
+                onClick={() =>
+                  setDisplaySource(
+                    'reconstructed'
+                  )
+                }
+              >
+                Reconstructed
+              </button>
+
+
+              <button
+                type="button"
+                className={
+                  displaySource ===
                   'filtered'
                     ? 'active'
                     : ''
@@ -388,6 +453,9 @@ function Dashboard() {
 
           <MissingDataPanel
             eegData={eegData}
+            isReconstructed={
+              reconstructedData !== null
+            }
           />
 
 
@@ -413,7 +481,7 @@ function Dashboard() {
 
               <FilterPanel
                 eegData={
-                  eegData
+                  filterInputData
                 }
                 onFilterSuccess={
                   handleFilterSuccess
@@ -423,46 +491,15 @@ function Dashboard() {
 
               {/* Reconstruction */}
 
-              <section className="coming-soon-card">
-
-                <div className="coming-soon-card-header">
-
-                  <div className="coming-soon-icon">
-
-                    <Sparkles
-                      size={20}
-                    />
-
-                  </div>
-
-
-                  <span className="feature-coming-soon">
-                    Coming Soon
-                  </span>
-
-                </div>
-
-
-                <h3>
-                  Reconstruction
-                </h3>
-
-
-                <p>
-                  Detect missing EEG data
-                  and reconstruct signal
-                  segments.
-                </p>
-
-
-                <button
-                  type="button"
-                  disabled
-                >
-                  Configure
-                </button>
-
-              </section>
+              <ReconstructionPanel
+                eegData={eegData}
+                reconstructedData={
+                  reconstructedData
+                }
+                onReconstructionSuccess={
+                  handleReconstructionSuccess
+                }
+              />
 
             </div>
 

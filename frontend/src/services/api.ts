@@ -4,10 +4,52 @@ import type {
   EEGFilteredData,
   EEGFilterSettings,
   EEGPSDData,
+  EEGReconstructedData,
 } from '../types/eeg'
 
 
 const API_BASE_URL = 'http://localhost:8000'
+
+
+// -------------------------
+// EEG Reconstruction
+// -------------------------
+
+export async function reconstructEEGData(
+  eegData: EEGData
+): Promise<EEGReconstructedData> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/eeg/reconstruct`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        fileName: eegData.fileName,
+        samplingRate: eegData.samplingRate,
+        duration: eegData.duration,
+        channels: eegData.channels,
+        data: eegData.data,
+      }),
+    }
+  )
+
+  if (!response.ok) {
+    const errorData = await response.json()
+
+    throw new Error(
+      errorData.detail
+      ?? 'Failed to reconstruct EEG data'
+    )
+  }
+
+  const reconstructedData:
+    EEGReconstructedData =
+      await response.json()
+
+  return reconstructedData
+}
 
 
 // -------------------------

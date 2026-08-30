@@ -2476,3 +2476,69 @@
   color: #64748b;
   font-size: 12px;
 }
+.reconstruction-card {
+  padding: 22px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.reconstruction-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.reconstruction-icon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 10px;
+  background: #f3e8ff;
+  color: #7e22ce;
+}
+
+.reconstruction-method {
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.reconstruction-card h3 {
+  margin: 16px 0 7px;
+}
+
+.reconstruction-card > p {
+  min-height: 40px;
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.reconstruction-result,
+.reconstruction-error {
+  margin-top: 13px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.reconstruction-result {
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+.reconstruction-error {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.reconstruction-card button {
+  width: 100%;
+  margin-top: 16px;
+}

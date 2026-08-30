@@ -17,6 +17,8 @@ from app.schemas.eeg import (
     EEGMissingSegment,
     EEGPSDRequest,
     EEGPSDResponse,
+    EEGReconstructionRequest,
+    EEGReconstructionResponse,
     EEGUploadResponse,
 )
 
@@ -27,6 +29,10 @@ from app.services.eeg_filter import (
 from app.services.eeg_spectral import (
     calculate_band_power,
     calculate_psd,
+)
+
+from app.services.eeg_reconstruction import (
+    reconstruct_eeg_linear,
 )
 
 
@@ -256,6 +262,53 @@ def upload_eeg(file: UploadFile):
         channels=channels,
         data=data,
         missingData=missing_data,
+    )
+
+
+# -------------------------
+# EEG Reconstruction API
+# -------------------------
+
+@router.post(
+    "/reconstruct",
+    response_model=EEGReconstructionResponse,
+)
+def reconstruct_eeg(
+    request: EEGReconstructionRequest,
+):
+    try:
+        reconstructed_data, reconstructed_count = (
+            reconstruct_eeg_linear(
+                data=request.data,
+            )
+        )
+
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail=str(exc),
+        ) from exc
+
+    total_value_count = sum(
+        len(channel_data)
+        for channel_data in reconstructed_data
+    )
+
+    return EEGReconstructionResponse(
+        fileName=request.fileName,
+        samplingRate=request.samplingRate,
+        duration=request.duration,
+        channels=request.channels,
+        data=reconstructed_data,
+        missingData=EEGMissingDataInfo(
+            hasMissing=False,
+            totalMissingCount=0,
+            totalValueCount=total_value_count,
+            missingRate=0.0,
+            channels=[],
+        ),
+        reconstructionMethod="linear",
+        reconstructedCount=reconstructed_count,
     )
 
 

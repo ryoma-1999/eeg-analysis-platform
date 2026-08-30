@@ -38,6 +38,29 @@ class EEGUploadResponse(BaseModel):
 
 
 # -------------------------
+# EEG Reconstruction
+# -------------------------
+
+class EEGReconstructionRequest(BaseModel):
+    fileName: str
+    samplingRate: float
+    duration: float
+    channels: list[str]
+    data: list[list[float | None]]
+
+
+class EEGReconstructionResponse(BaseModel):
+    fileName: str
+    samplingRate: float
+    duration: float
+    channels: list[str]
+    data: list[list[float]]
+    missingData: EEGMissingDataInfo
+    reconstructionMethod: str
+    reconstructedCount: int
+
+
+# -------------------------
 # EEG Filter
 # -------------------------
 

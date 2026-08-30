@@ -10,11 +10,13 @@ import type {
 
 type MissingDataPanelProps = {
   eegData: EEGData | null
+  isReconstructed: boolean
 }
 
 
 function MissingDataPanel({
   eegData,
+  isReconstructed,
 }: MissingDataPanelProps) {
   if (!eegData) {
     return null
@@ -47,8 +49,12 @@ function MissingDataPanel({
           <div>
             <strong>Missing EEG data detected</strong>
             <p>
-              Reconstruction is required before
-              signal processing.
+              {isReconstructed
+                ? 'Linear reconstruction has been completed.'
+                : (
+                  'Reconstruction is required before '
+                  + 'signal processing.'
+                )}
             </p>
           </div>
         </div>

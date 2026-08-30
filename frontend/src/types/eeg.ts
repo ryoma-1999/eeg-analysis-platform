@@ -32,6 +32,12 @@ export type EEGMissingDataInfo = {
   missingRate: number
   channels: EEGChannelMissingInfo[]
 }
+
+export type EEGReconstructedData = EEGData & {
+  reconstructionMethod: 'linear'
+  reconstructedCount: number
+}
+
 export type EEGFilterSettings = {
   highpassHz: number | null
   lowpassHz: number | null
