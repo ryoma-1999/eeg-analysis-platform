@@ -14,7 +14,6 @@ import Sidebar from '../components/layout/Sidebar'
 import EEGChart from '../components/eeg/EEGChart'
 import FileUpload from '../components/eeg/FileUpload'
 import FilterPanel from '../components/eeg/FilterPanel'
-import MissingDataPanel from '../components/eeg/MissingDataPanel'
 import ReconstructionPanel from '../components/eeg/ReconstructionPanel'
 import PSDPanel from '../components/eeg/PSDPanel'
 import BandPowerPanel from '../components/eeg/BandPowerPanel'
@@ -95,15 +94,25 @@ function Dashboard() {
     /*
      * 新しいOriginal EEGを保存
      */
-    setEEGData(data)
+    setEEGData(
+      data
+    )
 
-    setReconstructedData(null)
+
+    /*
+     * 以前のReconstructed EEGは削除
+     */
+    setReconstructedData(
+      null
+    )
 
 
     /*
      * 以前のFiltered EEGは削除
      */
-    setFilteredData(null)
+    setFilteredData(
+      null
+    )
 
 
     /*
@@ -112,6 +121,7 @@ function Dashboard() {
     setDisplaySource(
       'original'
     )
+
   }
 
 
@@ -122,9 +132,19 @@ function Dashboard() {
   const handleReconstructionSuccess = (
     data: EEGReconstructedData
   ) => {
-    setReconstructedData(data)
-    setFilteredData(null)
-    setDisplaySource('reconstructed')
+
+    setReconstructedData(
+      data
+    )
+
+    setFilteredData(
+      null
+    )
+
+    setDisplaySource(
+      'reconstructed'
+    )
+
   }
 
 
@@ -139,7 +159,9 @@ function Dashboard() {
     /*
      * Filter結果を保存
      */
-    setFilteredData(data)
+    setFilteredData(
+      data
+    )
 
 
     /*
@@ -149,6 +171,7 @@ function Dashboard() {
     setDisplaySource(
       'filtered'
     )
+
   }
 
 
@@ -159,25 +182,47 @@ function Dashboard() {
   let displayData:
     EEGData | null = eegData
 
+
+  /*
+   * Reconstructed表示
+   */
   if (
-    displaySource === 'reconstructed'
+    displaySource
+      === 'reconstructed'
     && reconstructedData
   ) {
-    displayData = reconstructedData
+
+    displayData =
+      reconstructedData
+
   }
 
 
+  /*
+   * Filtered表示
+   */
   if (
-    displaySource === 'filtered'
+    displaySource
+      === 'filtered'
     && filteredData
   ) {
 
     displayData =
       filteredData
+
   }
 
+
+  /*
+   * 元データに欠損がある場合、
+   * FilterはReconstructed EEGに対して実行する。
+   *
+   * 欠損がない場合はOriginal EEGを使用する。
+   */
   const filterInputData =
-    eegData?.missingData.hasMissing
+    eegData
+      ?.missingData
+      .hasMissing
       ? reconstructedData
       : eegData
 
@@ -285,7 +330,9 @@ function Dashboard() {
                 <strong>
                   {
                     eegData
-                      ? eegData.channels.length
+                      ? eegData
+                          .channels
+                          .length
                       : '—'
                   }
                 </strong>
@@ -374,11 +421,14 @@ function Dashboard() {
 
             <div className="signal-source-control">
 
+
+              {/* Original */}
+
               <button
                 type="button"
                 className={
-                  displaySource ===
-                  'original'
+                  displaySource
+                    === 'original'
                     ? 'active'
                     : ''
                 }
@@ -395,11 +445,13 @@ function Dashboard() {
               </button>
 
 
+              {/* Reconstructed */}
+
               <button
                 type="button"
                 className={
-                  displaySource ===
-                  'reconstructed'
+                  displaySource
+                    === 'reconstructed'
                     ? 'active'
                     : ''
                 }
@@ -416,11 +468,13 @@ function Dashboard() {
               </button>
 
 
+              {/* Filtered */}
+
               <button
                 type="button"
                 className={
-                  displaySource ===
-                  'filtered'
+                  displaySource
+                    === 'filtered'
                     ? 'active'
                     : ''
                 }
@@ -448,13 +502,6 @@ function Dashboard() {
           <EEGChart
             eegData={
               displayData
-            }
-          />
-
-          <MissingDataPanel
-            eegData={eegData}
-            isReconstructed={
-              reconstructedData !== null
             }
           />
 
@@ -489,10 +536,12 @@ function Dashboard() {
               />
 
 
-              {/* Reconstruction */}
+              {/* Missing Data / Reconstruction */}
 
               <ReconstructionPanel
-                eegData={eegData}
+                eegData={
+                  eegData
+                }
                 reconstructedData={
                   reconstructedData
                 }
@@ -523,12 +572,17 @@ function Dashboard() {
 
             <div className="analysis-grid">
 
+
+              {/* PSD */}
+
               <PSDPanel
                 eegData={
                   displayData
                 }
               />
 
+
+              {/* Band Power */}
 
               <BandPowerPanel
                 eegData={
@@ -674,6 +728,7 @@ function Dashboard() {
     </div>
 
   )
+
 }
 
 

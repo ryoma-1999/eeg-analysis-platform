@@ -2944,3 +2944,527 @@
   }
 
 }
+
+/* =========================================================
+   Missing Data / Reconstruction
+   Preprocessing integrated layout
+========================================================= */
+
+
+/* -------------------------
+   Reconstruction Card
+------------------------- */
+
+.preprocessing-grid > .reconstruction-card {
+  min-width: 0;
+
+  padding:
+    0
+    0
+    0
+    22px;
+
+  border: 0;
+  border-left:
+    1px solid
+    #dbe1e8;
+
+  border-radius: 0;
+
+  background:
+    transparent;
+
+  box-shadow:
+    none;
+}
+
+
+/* -------------------------
+   Header
+------------------------- */
+
+.reconstruction-card-header {
+  min-height: 22px;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 10px;
+}
+
+
+.reconstruction-icon {
+  display: none;
+}
+
+
+.reconstruction-method {
+  padding:
+    3px
+    8px;
+
+  border-radius:
+    999px;
+
+  background:
+    #f1f5f9;
+
+  color:
+    #475569;
+
+  font-size:
+    10px;
+
+  font-weight:
+    700;
+}
+
+
+.reconstruction-card h3 {
+  margin:
+    -21px
+    0
+    4px;
+
+  color:
+    #0f172a;
+
+  font-size:
+    13px;
+
+  font-weight:
+    700;
+}
+
+
+.reconstruction-card > p {
+  min-height:
+    0;
+
+  margin:
+    0;
+
+  color:
+    #64748b;
+
+  font-size:
+    11px;
+
+  line-height:
+    1.4;
+}
+
+
+/* =========================================================
+   Missing Summary
+========================================================= */
+
+.reconstruction-missing-summary {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(0, 1fr)
+    );
+
+  gap:
+    8px;
+
+  margin-top:
+    10px;
+}
+
+
+.reconstruction-missing-summary > div {
+  min-width:
+    0;
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap:
+    4px;
+
+  min-height:
+    58px;
+
+  padding:
+    7px
+    8px;
+
+  border:
+    1px solid
+    #e2e8f0;
+
+  border-radius:
+    8px;
+
+  background:
+    #f8fafc;
+
+  box-sizing:
+    border-box;
+}
+
+
+.reconstruction-missing-summary span {
+  color:
+    #64748b;
+
+  font-size:
+    9px;
+
+  font-weight:
+    500;
+
+  text-align:
+    center;
+}
+
+
+.reconstruction-missing-summary strong {
+  color:
+    #0f172a;
+
+  font-size:
+    15px;
+
+  font-weight:
+    700;
+}
+
+
+/* =========================================================
+   Missing Status
+========================================================= */
+
+.reconstruction-missing-status {
+  margin-top:
+    8px;
+
+  padding:
+    7px
+    9px;
+
+  border:
+    1px solid;
+
+  border-radius:
+    7px;
+
+  font-size:
+    10px;
+
+  line-height:
+    1.4;
+}
+
+
+.reconstruction-missing-status.complete {
+  border-color:
+    #bbf7d0;
+
+  background:
+    #f0fdf4;
+
+  color:
+    #15803d;
+}
+
+
+.reconstruction-missing-status.warning {
+  border-color:
+    #fed7aa;
+
+  background:
+    #fff7ed;
+
+  color:
+    #c2410c;
+}
+
+
+/* =========================================================
+   Reconstruction Result
+========================================================= */
+
+.reconstruction-result {
+  margin-top:
+    8px;
+
+  padding:
+    7px
+    9px;
+
+  border:
+    1px solid
+    #bbf7d0;
+
+  border-radius:
+    7px;
+
+  background:
+    #f0fdf4;
+
+  color:
+    #15803d;
+
+  font-size:
+    10px;
+}
+
+
+.reconstruction-error {
+  margin-top:
+    8px;
+
+  padding:
+    7px
+    9px;
+
+  border:
+    1px solid
+    #fecaca;
+
+  border-radius:
+    7px;
+
+  background:
+    #fef2f2;
+
+  color:
+    #b91c1c;
+
+  font-size:
+    10px;
+}
+
+
+/* =========================================================
+   Reconstruction Buttons
+========================================================= */
+
+.reconstruction-actions {
+  display:
+    grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+  gap:
+    8px;
+
+  margin-top:
+    9px;
+}
+
+
+.reconstruction-card
+.reconstruction-actions
+button {
+  width:
+    100%;
+
+  min-height:
+    32px;
+
+  margin:
+    0;
+
+  padding:
+    6px
+    8px;
+
+  border:
+    1px solid
+    #2563eb;
+
+  border-radius:
+    6px;
+
+  font-family:
+    inherit;
+
+  font-size:
+    10px;
+
+  font-weight:
+    600;
+
+  cursor:
+    pointer;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+
+/* Linear */
+
+.reconstruction-actions:first-of-type
+button:first-child {
+  background:
+    #ffffff;
+
+  color:
+    #2563eb;
+}
+
+
+.reconstruction-actions:first-of-type
+button:first-child:hover:not(:disabled) {
+  background:
+    #eff6ff;
+}
+
+
+/* AI */
+
+.reconstruction-actions:first-of-type
+button:last-child {
+  background:
+    #2563eb;
+
+  color:
+    #ffffff;
+}
+
+
+.reconstruction-actions:first-of-type
+button:last-child:hover:not(:disabled) {
+  background:
+    #1d4ed8;
+
+  border-color:
+    #1d4ed8;
+}
+
+
+/* Disabled */
+
+.reconstruction-card
+.reconstruction-actions
+button:disabled {
+  border-color:
+    #cbd5e1;
+
+  background:
+    #f1f5f9;
+
+  color:
+    #94a3b8;
+
+  cursor:
+    not-allowed;
+}
+
+
+/* =========================================================
+   Evaluation Button
+========================================================= */
+
+.reconstruction-evaluate-button {
+  grid-column:
+    1 / -1;
+
+  margin:
+    0 !important;
+
+  border-color:
+    #cbd5e1 !important;
+
+  background:
+    #ffffff !important;
+
+  color:
+    #475569 !important;
+}
+
+
+.reconstruction-evaluate-button:hover:not(:disabled) {
+  border-color:
+    #2563eb !important;
+
+  background:
+    #eff6ff !important;
+
+  color:
+    #2563eb !important;
+}
+
+
+/* =========================================================
+   Responsive
+========================================================= */
+
+@media (
+  max-width: 1100px
+) {
+
+  .preprocessing-grid
+  > .reconstruction-card {
+    margin-top:
+      12px;
+
+    padding:
+      12px
+      0
+      0;
+
+    border-left:
+      0;
+
+    border-top:
+      1px solid
+      #dbe1e8;
+  }
+
+
+  .reconstruction-card h3 {
+    margin:
+      -21px
+      0
+      4px;
+  }
+
+}
+
+
+@media (
+  max-width: 720px
+) {
+
+  .reconstruction-missing-summary {
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .reconstruction-actions {
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .reconstruction-evaluate-button {
+    grid-column:
+      auto;
+  }
+
+}

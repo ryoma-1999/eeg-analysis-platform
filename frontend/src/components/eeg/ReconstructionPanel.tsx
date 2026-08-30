@@ -46,7 +46,9 @@ function ReconstructionPanel({
   const [
     error,
     setError,
-  ] = useState<string | null>(null)
+  ] = useState<string | null>(
+    null
+  )
 
   const [
     isEvaluationOpen,
@@ -54,19 +56,58 @@ function ReconstructionPanel({
   ] = useState(false)
 
 
+  /* =========================================================
+     Missing Data
+  ========================================================= */
+
   const hasMissing =
     eegData?.missingData.hasMissing
     ?? false
 
 
+  const missingData =
+    eegData?.missingData
+
+
+  /*
+   * 同じ時間帯の欠損が
+   * 複数チャンネルに存在しても
+   * 1つのSegmentとして数える
+   */
+  const detectedSegments =
+    missingData
+      ? new Set(
+          missingData.channels.flatMap(
+            channel =>
+              channel.segments.map(
+                segment =>
+                  `${segment.startSample}-${segment.endSample}`
+              )
+          )
+        ).size
+      : 0
+
+
+  /* =========================================================
+     Reset
+  ========================================================= */
+
   useEffect(() => {
 
     setError(null)
 
-    setIsEvaluationOpen(false)
+    setReconstructingMethod(null)
+
+    setIsEvaluationOpen(
+      false
+    )
 
   }, [eegData])
 
+
+  /* =========================================================
+     Reconstruction
+  ========================================================= */
 
   const handleReconstruct = async (
     method: 'linear' | 'mlp'
@@ -79,7 +120,9 @@ function ReconstructionPanel({
       return
     }
 
-    setError(null)
+    setError(
+      null
+    )
 
     setReconstructingMethod(
       method
@@ -129,9 +172,17 @@ function ReconstructionPanel({
   }
 
 
+  /* =========================================================
+     UI
+  ========================================================= */
+
   return (
 
     <section className="reconstruction-card">
+
+      {/* =====================================================
+          Header
+      ===================================================== */}
 
       <div className="reconstruction-card-header">
 
@@ -152,14 +203,129 @@ function ReconstructionPanel({
 
 
       <h3>
-        Reconstruction
+        Missing Data / Reconstruction
       </h3>
 
 
       <p>
-        Compare channel-wise linear interpolation
-        with a bidirectional autoregressive MLP.
+        Detect missing EEG samples and reconstruct
+        them using Linear or AI interpolation.
       </p>
+
+
+      {/* =====================================================
+          Missing Data Summary
+      ===================================================== */}
+
+      <div className="reconstruction-missing-summary">
+
+        {/* Missing Samples */}
+
+        <div>
+
+          <span>
+            Missing Samples
+          </span>
+
+          <strong>
+            {
+              missingData
+                ? missingData
+                    .totalMissingCount
+                    .toLocaleString()
+                : '—'
+            }
+          </strong>
+
+        </div>
+
+
+        {/* Missing Rate */}
+
+        <div>
+
+          <span>
+            Missing Rate
+          </span>
+
+          <strong>
+            {
+              missingData
+                ? `${(
+                    missingData
+                      .missingRate
+                    * 100
+                  ).toFixed(2)}%`
+                : '—'
+            }
+          </strong>
+
+        </div>
+
+
+        {/* Detected Segments */}
+
+        <div>
+
+          <span>
+            Detected Segments
+          </span>
+
+          <strong>
+            {
+              eegData
+                ? detectedSegments
+                : '—'
+            }
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      {/* =====================================================
+          Missing Data Status
+      ===================================================== */}
+
+      {eegData && (
+
+        <div
+          className={
+            hasMissing
+              ? (
+                  'reconstruction-missing-status '
+                  + 'warning'
+                )
+              : (
+                  'reconstruction-missing-status '
+                  + 'complete'
+                )
+          }
+        >
+
+          {
+            hasMissing
+              ? (
+                  reconstructedData
+                    ? (
+                        'Missing EEG data was detected. '
+                        + 'Reconstruction has been completed.'
+                      )
+                    : (
+                        'Missing EEG data detected. '
+                        + 'Reconstruction is recommended '
+                        + 'before signal processing.'
+                      )
+                )
+              : (
+                  'No missing EEG data detected.'
+                )
+          }
+
+        </div>
+
+      )}
 
 
       {/* =====================================================
@@ -176,6 +342,7 @@ function ReconstructionPanel({
             {
               reconstructedData
                 .reconstructedCount
+                .toLocaleString()
             }
           </strong>
 
@@ -217,6 +384,8 @@ function ReconstructionPanel({
 
       <div className="reconstruction-actions">
 
+        {/* Linear */}
+
         <button
           type="button"
           onClick={() =>
@@ -241,6 +410,8 @@ function ReconstructionPanel({
 
         </button>
 
+
+        {/* AI */}
 
         <button
           type="button"
@@ -285,6 +456,7 @@ function ReconstructionPanel({
           }
           disabled={
             !eegData
+            || hasMissing
           }
         >
 
