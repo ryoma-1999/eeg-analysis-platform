@@ -21,12 +21,40 @@ resource "azurerm_container_app" "backend" {
     min_replicas = 0
     max_replicas = 1
 
-    container {
-      name   = "backend"
-      image  = "${azurerm_container_registry.eeg.login_server}/eeg-backend:${var.backend_image_tag}"
-      cpu    = 0.5
-      memory = "1Gi"
-    }
+container {
+  name   = "backend"
+  image  = "${azurerm_container_registry.eeg.login_server}/eeg-backend:${var.backend_image_tag}"
+  cpu    = 1
+  memory = "2Gi"
+
+  liveness_probe {
+    transport               = "TCP"
+    port                    = 8000
+    initial_delay           = 0
+    interval_seconds        = 10
+    timeout                 = 5
+    failure_count_threshold = 3
+  }
+
+  readiness_probe {
+    transport               = "TCP"
+    port                    = 8000
+    initial_delay           = 0
+    interval_seconds        = 5
+    timeout                 = 5
+    failure_count_threshold = 48
+    success_count_threshold = 1
+  }
+
+  startup_probe {
+    transport               = "TCP"
+    port                    = 8000
+    initial_delay           = 1
+    interval_seconds        = 1
+    timeout                 = 3
+    failure_count_threshold = 240
+  }
+}
   }
 
   ingress {
