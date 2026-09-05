@@ -1,0 +1,68 @@
+{
+  "sampling_rate_hz": 250,
+  "duration_sec": 30.0,
+  "columns": [
+    "time",
+    "Fp1",
+    "Fp2",
+    "F3",
+    "F4",
+    "C3",
+    "C4",
+    "O1",
+    "O2"
+  ],
+  "synthetic": true,
+  "purpose": "Feature-isolated demo/test data for EEG analysis application",
+  "files": {
+    "01_psd_bandpower_channel_test.csv": {
+      "purpose": "PSD / band-power validation",
+      "expected": {
+        "Fp1": "delta peak around 2 Hz",
+        "Fp2": "theta peak around 6 Hz",
+        "F3": "alpha peak around 10 Hz",
+        "F4": "alpha peak around 10 Hz",
+        "C3": "beta peak around 20 Hz",
+        "C4": "beta peak around 20 Hz",
+        "O1": "gamma peak around 35 Hz",
+        "O2": "alpha peak around 10 Hz"
+      }
+    },
+    "02_filter_50hz_and_drift_test.csv": {
+      "purpose": "Filter validation",
+      "expected": "Before filtering: strong 0.4 Hz drift and 50 Hz component plus 10 Hz alpha. Appropriate high-pass/band-pass and 50 Hz notch should suppress drift/50 Hz while retaining 10 Hz."
+    },
+    "03_reconstruction_ground_truth.csv": {
+      "purpose": "Ground truth for reconstruction comparison"
+    },
+    "04_reconstruction_missing.csv": {
+      "purpose": "Missing-data detection / reconstruction",
+      "missing_intervals_sec": [
+        {
+          "start": 5.0,
+          "end": 5.5
+        },
+        {
+          "start": 12.0,
+          "end": 13.0
+        },
+        {
+          "start": 20.0,
+          "end": 21.5
+        }
+      ],
+      "expected": "Linear interpolation should visibly flatten/bridge oscillations; reconstruction can be compared against the ground-truth file with RMSE/MAE/correlation."
+    },
+    "05_presentation_demo_clean.csv": {
+      "purpose": "One-file visual demo",
+      "expected": "Clear alpha around 10 Hz, strongest in O1/O2; frontal blink around 8 s."
+    },
+    "06_presentation_demo_missing.csv": {
+      "purpose": "One-file visual demo including a missing interval",
+      "missing_interval_sec": {
+        "start": 16.0,
+        "end": 17.0
+      }
+    }
+  }
+}
