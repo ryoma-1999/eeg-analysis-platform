@@ -9,9 +9,9 @@ flowchart LR
 
     User["User"]
 
-    FE["Frontend<br/>React + Nginx<br/>0.25 vCPU / 0.5 GiB"]
+    FE["Frontend<br/>React + Nginx<br/>0.5 vCPU / 1 GiB"]
 
-    BE["Backend<br/>FastAPI<br/>1 vCPU / 2 GiB"]
+    BE["Backend<br/>FastAPI<br/>4 vCPU / 8 GiB"]
 
     ACR["Azure Container Registry"]
 

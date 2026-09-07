@@ -24,8 +24,8 @@ resource "azurerm_container_app" "frontend" {
     container {
       name   = "frontend"
       image  = "${azurerm_container_registry.eeg.login_server}/eeg-frontend:${var.frontend_image_tag}"
-      cpu    = 0.25
-      memory = "0.5Gi"
+      cpu    = 0.5
+      memory = "1Gi"
 
       env {
         name  = "BACKEND_URL"
