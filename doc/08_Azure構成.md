@@ -11,7 +11,7 @@ flowchart LR
 
     FE["Frontend<br/>React + Nginx<br/>0.5 vCPU / 1 GiB"]
 
-    BE["Backend<br/>FastAPI<br/>4 vCPU / 8 GiB"]
+    BE["Backend<br/>FastAPI<br/>2 vCPU / 4 GiB"]
 
     ACR["Azure Container Registry"]
 

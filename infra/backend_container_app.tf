@@ -24,8 +24,8 @@ resource "azurerm_container_app" "backend" {
     container {
       name   = "backend"
       image  = "${azurerm_container_registry.eeg.login_server}/eeg-backend:${var.backend_image_tag}"
-      cpu    = 4
-      memory = "8Gi"
+      cpu    = 2
+      memory = "4Gi"
 
       liveness_probe {
         transport               = "TCP"
