@@ -373,6 +373,7 @@ def _train_autoregressive_mlp(
             "100 valid training windows per channel."
         )
 
+    # モデル
     model = make_pipeline(
         StandardScaler(),
         MLPRegressor(
